@@ -246,20 +246,36 @@ describe("ElectronPlatform", () => {
     });
 
     describe("notifications", () => {
+        beforeEach(() => {
+            Object.defineProperty(window, "Notification", {
+                value: { permission: "default", requestPermission: vi.fn() },
+                configurable: true,
+            });
+        });
+
         it("indicates support for notifications", () => {
             const platform = new ElectronPlatform();
             expect(platform.supportsNotifications()).toBe(true);
         });
 
-        it("may send notifications", () => {
+        it("may send notifications when permission is granted", () => {
+            Object.defineProperty(window.Notification, "permission", { value: "granted", configurable: true });
             const platform = new ElectronPlatform();
             expect(platform.maySendNotifications()).toBe(true);
         });
 
-        it("pretends to request notification permission", async () => {
+        it("does not send notifications when permission is denied", () => {
+            Object.defineProperty(window.Notification, "permission", { value: "denied", configurable: true });
+            const platform = new ElectronPlatform();
+            expect(platform.maySendNotifications()).toBe(false);
+        });
+
+        it("requests notification permission", async () => {
+            vi.spyOn(window.Notification, "requestPermission").mockResolvedValue("granted");
             const platform = new ElectronPlatform();
             const result = await platform.requestNotificationPermission();
             expect(result).toEqual("granted");
+            expect(window.Notification.requestPermission).toHaveBeenCalled();
         });
 
         it("creates a loud notification", async () => {

@@ -326,7 +326,7 @@ export default class ElectronPlatform extends BasePlatform {
     }
 
     public maySendNotifications(): boolean {
-        return true;
+        return window.Notification.permission === "granted";
     }
 
     public displayNotification(
@@ -410,7 +410,7 @@ export default class ElectronPlatform extends BasePlatform {
     }
 
     public requestNotificationPermission(): Promise<string> {
-        return Promise.resolve("granted");
+        return window.Notification.requestPermission();
     }
 
     public reload(): void {

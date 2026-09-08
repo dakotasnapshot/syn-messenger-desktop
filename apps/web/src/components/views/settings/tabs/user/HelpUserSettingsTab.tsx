@@ -107,6 +107,11 @@ export default class HelpUserSettingsTab extends React.Component<EmptyObject, IS
                 <SettingsSubsectionText>
                     <ul>
                         <li>
+                            <ExternalLink href="https://synmessenger.com/">SYN Messenger</ExternalLink> is developed and
+                            maintained by Dakota Cole. This independent fork is based on Element and distributed under
+                            the GNU Affero General Public License.
+                        </li>
+                        <li>
                             {_t(
                                 "credits|default_cover_photo",
                                 {},
