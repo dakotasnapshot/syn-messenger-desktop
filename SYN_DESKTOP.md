@@ -11,9 +11,21 @@ SYN Messenger Desktop tracks Element Web/Desktop and ships under the upstream AG
 
 ## iOS parity map
 
-Desktop configuration carries SYN branding, iconography, generic Matrix.org onboarding, arbitrary homeserver login, SYN permalinks, support/legal links, default dark styling, and Retro 1/Retro 2 themes. Element Desktop already provides room-avatar editing, presence UI, encrypted-room search, desktop notifications, and room-level appearance controls.
+Desktop configuration carries SYN branding, iconography, generic Matrix.org onboarding, arbitrary homeserver login, SYN permalinks, support/legal links, default dark styling, and Retro 1/Retro 2 themes. Element Desktop already provides room-avatar editing, presence UI, desktop notifications, and room-level appearance controls.
+
+Encrypted rooms work in 0.1.0. Local full-text search inside encrypted message history does not: the release omits the optional native `matrix-seshat` module.
 
 Watch transport, iOS notification-service rendering, Apple communication notifications, and SwiftUI wallpaper storage are platform-specific and are not copied into Electron.
+
+## Roadmap
+
+### Native encrypted-room search
+
+- Add supported Rust toolchain and build `matrix-seshat` for both `arm64` and `x86_64`.
+- Package universal native module without weakening hardened-runtime settings.
+- Sign and notarize native library with rest of app bundle.
+- Test indexing, search after restart, database migration, and recovery on Apple Silicon and Intel.
+- Ship only after mounted-DMG Gatekeeper verification passes.
 
 ## Build
 
