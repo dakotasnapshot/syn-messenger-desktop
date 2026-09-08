@@ -19,6 +19,13 @@ Watch transport, iOS notification-service rendering, Apple communication notific
 
 ## Roadmap
 
+### Automatic updates
+
+- macOS clients poll `https://synmessenger.com/desktop/update/macos/releases.json` after launch and hourly.
+- Signed updates download in the background and expose the existing **Restart to Update** action.
+- Publish the notarized universal ZIP and release metadata atomically; retain the DMG for first-time installation.
+- Never point SYN builds at Element's upstream update feed.
+
 ### Native encrypted-room search
 
 - Add supported Rust toolchain and build `matrix-seshat` for both `arm64` and `x86_64`.

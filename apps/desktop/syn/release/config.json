@@ -1,4 +1,5 @@
 {
+    "update_base_url": "https://synmessenger.com/desktop/update/",
     "default_server_config": {
         "m.homeserver": {
             "base_url": "https://matrix-client.matrix.org",
