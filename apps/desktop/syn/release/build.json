@@ -3,5 +3,6 @@
     "name": "syn-messenger",
     "productName": "SYN Messenger",
     "description": "Private, federated Matrix messaging from SYN Messenger",
+    "desktopName": "syn-messenger.desktop",
     "protocols": ["syn", "matrix"]
 }

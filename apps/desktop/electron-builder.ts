@@ -44,6 +44,7 @@ interface Metadata {
  * Extra metadata fields that are injected into the build to pass to the app at runtime.
  */
 interface ExtraMetadata extends Metadata {
+    desktopName?: string;
     electron_appId: string;
     electron_protocol: string;
     electron_windows_cert_sn?: string;
@@ -54,6 +55,7 @@ interface ExtraMetadata extends Metadata {
  */
 interface Variant extends Metadata {
     "appId": string;
+    "desktopName"?: string;
     "linux.executableName"?: string;
     "linux.deb.name"?: string;
     "protocols": string[];
@@ -133,6 +135,7 @@ const config: Omit<Writable<Configuration>, "electronFuses"> & {
         name: variant.name,
         productName: variant.productName,
         description: variant.description,
+        desktopName: variant.desktopName,
         electron_appId: variant.appId,
         electron_protocol: variant.protocols[0],
     },
@@ -141,6 +144,7 @@ const config: Omit<Writable<Configuration>, "electronFuses"> & {
         category: "Network;InstantMessaging;Chat",
         icon: "icon.png",
         executableName: variant.name, // element-desktop or element-desktop-nightly
+        syncDesktopName: true,
     },
     deb: {
         packageCategory: "net",
