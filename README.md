@@ -9,6 +9,7 @@ the upstream open-source licenses.
 - [Support](https://synmessenger.com/support.html)
 - [Privacy policy](https://synmessenger.com/privacy.html)
 - [Code signing policy](./CODE_SIGNING_POLICY.md)
+- [Source repository](https://github.com/dakotasnapshot/syn-messenger-desktop)
 
 SYN-specific release configuration lives in `apps/desktop/syn/release`.
 Upstream Element copyright, license terms, and project history are preserved

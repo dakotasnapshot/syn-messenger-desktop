@@ -7,7 +7,7 @@ provided by SignPath Foundation.
 
 SYN Messenger Desktop is an actively maintained, public fork of Element
 Web/Desktop. The source, build definitions, and release history are published
-at <https://github.com/dakota-cole/syn-messenger-desktop>. Element's upstream
+at <https://github.com/dakotasnapshot/syn-messenger-desktop>. Element's upstream
 copyright notices and open-source licenses are preserved. SYN-specific changes
 are released under the GNU Affero General Public License, version 3 or later.
 
@@ -18,8 +18,8 @@ introduced into the signed package.
 
 ## Team roles
 
-- Committer and reviewer: [Dakota Cole](https://github.com/dakota-cole)
-- Release approver: [Dakota Cole](https://github.com/dakota-cole)
+- Committer and reviewer: [Dakota Cole](https://github.com/dakotasnapshot)
+- Release approver: [Dakota Cole](https://github.com/dakotasnapshot)
 
 Changes from contributors without commit access require review before merge.
 Release signing requests require approval from the release approver. GitHub and
