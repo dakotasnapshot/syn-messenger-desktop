@@ -1,3 +1,21 @@
+# SYN Messenger Desktop
+
+SYN Messenger Desktop is the community-maintained desktop client for
+[SYN Messenger](https://synmessenger.com), available for macOS, Windows, and
+Linux. It is a branded fork of Element Web/Desktop and remains licensed under
+the upstream open-source licenses.
+
+- [Downloads](https://synmessenger.com/downloads/)
+- [Support](https://synmessenger.com/support.html)
+- [Privacy policy](https://synmessenger.com/privacy.html)
+- [Code signing policy](./CODE_SIGNING_POLICY.md)
+
+SYN-specific release configuration lives in `apps/desktop/syn/release`.
+Upstream Element copyright, license terms, and project history are preserved
+below.
+
+---
+
 [![Chat](https://img.shields.io/matrix/element-web:matrix.org?logo=matrix)](https://matrix.to/#/#element-web:matrix.org)
 ![Tests](https://github.com/element-hq/element-web/actions/workflows/tests.yaml/badge.svg)
 ![Static Analysis](https://github.com/element-hq/element-web/actions/workflows/static_analysis.yaml/badge.svg)

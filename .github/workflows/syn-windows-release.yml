@@ -1,0 +1,91 @@
+name: SYN Windows release
+
+on:
+    workflow_dispatch:
+        inputs:
+            version:
+                description: Release version without a leading v
+                required: true
+                default: 0.1.3
+    push:
+        tags:
+            - syn-v*
+
+permissions:
+    contents: read
+
+jobs:
+    build-and-sign:
+        runs-on: windows-latest
+        env:
+            VARIANT_PATH: syn/release/build.json
+            CSC_IDENTITY_AUTO_DISCOVERY: "false"
+        steps:
+            - name: Check out source
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Set release version
+              shell: pwsh
+              run: |
+                  if ("${{ github.event_name }}" -eq "workflow_dispatch") {
+                    $version = "${{ inputs.version }}"
+                  } else {
+                    $version = "${{ github.ref_name }}" -replace '^syn-v', ''
+                  }
+                  if ($version -notmatch '^\d+\.\d+\.\d+$') {
+                    throw "Invalid release version: $version"
+                  }
+                  "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+            - name: Enable Corepack
+              run: corepack enable
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Build Windows installers
+              run: pnpm --filter element-desktop build:64
+
+            - name: Collect unsigned installers
+              shell: pwsh
+              run: |
+                  New-Item -ItemType Directory -Force windows-unsigned | Out-Null
+                  Copy-Item "apps/desktop/dist/SYN Messenger $env:VERSION.msi" windows-unsigned/
+                  Copy-Item "apps/desktop/dist/squirrel-windows/SYN Messenger Setup $env:VERSION.exe" windows-unsigned/
+
+            - name: Upload unsigned build for verification
+              id: unsigned
+              uses: actions/upload-artifact@v4
+              with:
+                  name: syn-messenger-windows-unsigned-${{ env.VERSION }}
+                  path: windows-unsigned/
+                  if-no-files-found: error
+                  retention-days: 14
+
+            - name: Submit release to SignPath
+              if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+              uses: signpath/github-action-submit-signing-request@c92b958760219087e01f8d67a1669ed57afe2627
+              with:
+                  api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+                  organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+                  project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+                  signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+                  artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG }}
+                  github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+                  wait-for-completion: true
+                  wait-for-completion-timeout-in-seconds: 1800
+                  output-artifact-directory: windows-signed
+                  parameters: |
+                      Version: "${{ env.VERSION }}"
+                      ProductName: "SYN Messenger"
+
+            - name: Upload signed release
+              if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+              uses: actions/upload-artifact@v4
+              with:
+                  name: syn-messenger-windows-signed-${{ env.VERSION }}
+                  path: windows-signed/
+                  if-no-files-found: error
+                  retention-days: 30
