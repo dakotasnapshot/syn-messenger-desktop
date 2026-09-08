@@ -206,7 +206,7 @@ export default class SetupEncryptionBody extends React.Component<IProps, IState>
                     <EncryptionCardEmphasisedContent>
                         <span>{_t("encryption|verification|confirm_identity_description")}</span>
                         <span>
-                            <ExternalLink href="https://element.io/help#encryption-device-verification">
+                            <ExternalLink href="https://synmessenger.com/support.html#device-verification">
                                 {_t("action|learn_more")}
                             </ExternalLink>
                         </span>

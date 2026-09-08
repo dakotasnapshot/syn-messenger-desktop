@@ -35,7 +35,7 @@ exports[`ConfirmKeyStorageOffDialog > renders 1`] = `
       If you remove all your devices you will lose your message history and will need to verify all your existing contacts again. 
       <br />
       <a
-        href="https://element.io/help#encryption5"
+        href="https://synmessenger.com/support.html#recovery"
         rel="noreferrer noopener"
         target="_blank"
       >

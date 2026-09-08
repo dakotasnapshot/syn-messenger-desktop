@@ -135,7 +135,7 @@ function memberAvatar(member: RoomMember): React.ReactNode {
 
 function substituteATag(sub: string): React.ReactNode {
     return (
-        <a href="https://element.io/help#encryption18" target="_blank" rel="noreferrer noopener">
+        <a href="https://synmessenger.com/support.html#identity-changes" target="_blank" rel="noreferrer noopener">
             {sub}
         </a>
     );
