@@ -1,0 +1,107 @@
+{
+    "default_server_config": {
+        "m.homeserver": {
+            "base_url": "https://matrix-client.matrix.org",
+            "server_name": "matrix.org"
+        }
+    },
+    "disable_custom_urls": false,
+    "disable_guests": true,
+    "disable_login_language_selector": false,
+    "disable_3pid_login": false,
+    "force_verification": false,
+    "brand": "SYN Messenger",
+    "permalink_prefix": "https://synmessenger.com/chat/",
+    "default_device_display_name": "SYN Desktop",
+    "default_theme": "dark",
+    "mobile_guide_toast": false,
+    "show_labs_settings": false,
+    "room_directory": {
+        "servers": ["matrix.org"]
+    },
+    "branding": {
+        "welcome_background_url": "https://synmessenger.com/web-background.svg",
+        "logo_link_url": "https://synmessenger.com/",
+        "auth_header_logo_url": "https://synmessenger.com/logo.svg",
+        "auth_footer_links": [
+            { "text": "Privacy", "url": "https://synmessenger.com/privacy.html" },
+            { "text": "Terms", "url": "https://synmessenger.com/terms.html" },
+            { "text": "Support", "url": "https://synmessenger.com/support.html" }
+        ]
+    },
+    "desktop_builds": {
+        "available": true,
+        "logo": "https://synmessenger.com/logo.svg",
+        "url": "https://synmessenger.com/downloads/"
+    },
+    "mobile_builds": {
+        "ios": "https://synmessenger.com/",
+        "android": null,
+        "fdroid": null
+    },
+    "element_call": {
+        "brand": "SYN Call",
+        "disable": true,
+        "use_exclusively": false
+    },
+    "privacy_policy_url": "https://synmessenger.com/privacy.html",
+    "terms_and_conditions_links": [
+        { "text": "Privacy Policy", "url": "https://synmessenger.com/privacy.html" },
+        { "text": "Terms of Use", "url": "https://synmessenger.com/terms.html" }
+    ],
+    "setting_defaults": {
+        "breadcrumbs": true,
+        "custom_themes": [
+            {
+                "name": "SYN Retro 1",
+                "is_dark": false,
+                "fonts": {
+                    "general": "ui-rounded, system-ui, sans-serif",
+                    "monospace": "ui-monospace, monospace"
+                },
+                "colors": {
+                    "accent-color": "#0D6BC7",
+                    "primary-color": "#0D6BC7",
+                    "warning-color": "#C7374F",
+                    "sidebar-color": "#D7E9FA",
+                    "roomlist-background-color": "#EDF6FF",
+                    "roomlist-text-color": "#10263D",
+                    "roomlist-text-secondary-color": "#47627C",
+                    "roomlist-highlights-color": "#FFFFFF",
+                    "roomlist-separator-color": "#BDD5EB",
+                    "timeline-background-color": "#F9FCFF",
+                    "timeline-text-color": "#10263D",
+                    "timeline-text-secondary-color": "#47627C",
+                    "timeline-highlights-color": "#E0F0FF",
+                    "username-colors": ["#0D6BC7", "#7040EF", "#00796B", "#9A4D00", "#A82B53", "#3859A6", "#5E35B1", "#00695C"],
+                    "avatar-background-colors": ["#0D6BC7", "#7040EF", "#00796B", "#9A4D00", "#A82B53", "#3859A6", "#5E35B1", "#00695C"]
+                }
+            },
+            {
+                "name": "SYN Retro 2",
+                "is_dark": true,
+                "fonts": {
+                    "general": "ui-monospace, SFMono-Regular, Menlo, monospace",
+                    "monospace": "ui-monospace, SFMono-Regular, Menlo, monospace"
+                },
+                "colors": {
+                    "accent-color": "#6D40EF",
+                    "primary-color": "#15305A",
+                    "warning-color": "#FF6680",
+                    "sidebar-color": "#080D18",
+                    "roomlist-background-color": "#0E1728",
+                    "roomlist-text-color": "#F7F8FF",
+                    "roomlist-text-secondary-color": "#AAB6CC",
+                    "roomlist-highlights-color": "#192844",
+                    "roomlist-separator-color": "#263A5E",
+                    "timeline-background-color": "#090F1C",
+                    "timeline-text-color": "#F7F8FF",
+                    "timeline-text-secondary-color": "#AAB6CC",
+                    "timeline-highlights-color": "#14213A",
+                    "username-colors": ["#7BAEFF", "#A687FF", "#4DD9C0", "#FFB86C", "#FF7DA0", "#8EA8FF", "#C6A0FF", "#5CE1D2"],
+                    "avatar-background-colors": ["#15305A", "#6D40EF", "#00695C", "#8A4700", "#8D2345", "#2D478A", "#4B2A91", "#005A50"]
+                }
+            }
+        ]
+    }
+}

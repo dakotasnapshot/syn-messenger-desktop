@@ -1,15 +1,15 @@
 {
     "name": "element-desktop",
-    "productName": "Element",
+    "productName": "SYN Messenger",
     "main": "lib/electron-main.js",
     "exports": "./lib/electron-main.js",
     "version": "1.12.27",
-    "description": "Element: the future of secure communication",
+    "description": "Private, federated Matrix messaging from SYN Messenger",
     "author": {
-        "name": "Element",
-        "email": "support@element.io"
+        "name": "SYN Messenger",
+        "email": "support@synmessenger.com"
     },
-    "homepage": "https://element.io",
+    "homepage": "https://synmessenger.com",
     "repository": {
         "type": "git",
         "url": "https://github.com/vector-im/element-web"

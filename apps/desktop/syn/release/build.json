@@ -1,0 +1,7 @@
+{
+    "appId": "app.syn.messenger.desktop",
+    "name": "syn-messenger",
+    "productName": "SYN Messenger",
+    "description": "Private, federated Matrix messaging from SYN Messenger",
+    "protocols": ["syn", "matrix"]
+}
