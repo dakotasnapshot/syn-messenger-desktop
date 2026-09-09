@@ -9,7 +9,8 @@ on:
         paths:
             - .github/labels.yml
 
-permissions: {} # We use ELEMENT_BOT_TOKEN instead
+permissions:
+    issues: write
 
 jobs:
     sync-labels:
@@ -21,4 +22,4 @@ jobs:
             DELETE: true
             WET: true
         secrets:
-            ELEMENT_BOT_TOKEN: ${{ secrets.ELEMENT_BOT_TOKEN }}
+            ELEMENT_BOT_TOKEN: ${{ github.token }}
