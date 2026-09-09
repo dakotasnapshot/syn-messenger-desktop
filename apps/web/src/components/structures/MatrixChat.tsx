@@ -2089,7 +2089,7 @@ export default class MatrixChat extends React.PureComponent<IProps, IState> {
 
         if (PlatformPeg.get()) {
             PlatformPeg.get()!.setErrorStatus(state === SyncState.Error);
-            PlatformPeg.get()!.setNotificationCount(numUnreadRooms);
+            PlatformPeg.get()!.setNotificationCount(notificationState.count);
         }
 
         this.subTitleStatus = "";
