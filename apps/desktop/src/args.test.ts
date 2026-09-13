@@ -275,6 +275,16 @@ describe("getArgs", () => {
                 positional: ["/path/to/app"],
             });
         });
+
+        it("should retain a Syndicate 0.1.5 profile when no original SYN Messenger profile exists", () => {
+            vi.mocked(app.getName).mockReturnValue("SYN Messenger");
+            vol.fromJSON({
+                "/Users/name/Library/Application Support/Syndicate/IndexedDB": "This is a real IDB. I promise.",
+            });
+
+            const args = run();
+            expect(args.userDataPath).toBe("/Users/name/Library/Application Support/Syndicate");
+        });
     });
 
     describe("localConfigPath", () => {

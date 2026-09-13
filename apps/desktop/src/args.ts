@@ -100,6 +100,23 @@ function getUserDataPath(argv: ParsedArgs, protocolHandler: ProtocolHandler): st
     }
 
     const newUserDataPathExists = isRealUserDataDir(newUserDataPath);
+
+    // Syndicate is the installed display name, but SYN Messenger is the stable runtime
+    // identity. Version 0.1.5 briefly used Syndicate as both and therefore created a
+    // separate profile. Keep that profile usable for people whose first install was
+    // 0.1.5, while preferring the original profile whenever it exists so upgrades retain
+    // login state, encryption keys, device trust, and settings.
+    if (app.getName() === "SYN Messenger" && !newUserDataPathExists) {
+        let syndicateUserDataPath = path.join(app.getPath("appData"), "Syndicate");
+        if (argv["profile"]) {
+            syndicateUserDataPath += "-" + argv["profile"];
+        }
+        if (isRealUserDataDir(syndicateUserDataPath)) {
+            console.log(`Using Syndicate 0.1.5 user data path: ${syndicateUserDataPath}`);
+            return syndicateUserDataPath;
+        }
+    }
+
     let oldUserDataPath = path.join(app.getPath("appData"), app.getName().replace("Element", "Riot"));
     if (argv["profile"]) {
         oldUserDataPath += "-" + argv["profile"];

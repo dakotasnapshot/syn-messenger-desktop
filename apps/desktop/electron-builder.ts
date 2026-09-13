@@ -55,6 +55,7 @@ interface ExtraMetadata extends Metadata {
  */
 interface Variant extends Metadata {
     "appId": string;
+    "runtimeProductName"?: string;
     "desktopName"?: string;
     "linux.executableName"?: string;
     "linux.deb.name"?: string;
@@ -107,6 +108,7 @@ const config: Omit<Writable<Configuration>, "electronFuses"> & {
     electronFuses: Required<Configuration["electronFuses"]>;
 } = {
     appId: variant.appId,
+    productName: variant.productName,
     asarUnpack: "**/*.node",
     electronFuses: {
         enableCookieEncryption: true,
@@ -133,7 +135,9 @@ const config: Omit<Writable<Configuration>, "electronFuses"> & {
     extraResources: ["build/icon.*", "webapp.asar"],
     extraMetadata: {
         name: variant.name,
-        productName: variant.productName,
+        // Keep the runtime identity stable across display-name changes. Electron derives
+        // its default profile path and macOS safeStorage keychain identity from this value.
+        productName: variant.runtimeProductName ?? variant.productName,
         description: variant.description,
         desktopName: variant.desktopName,
         electron_appId: variant.appId,
