@@ -1,0 +1,57 @@
+name: SYN Linux release
+
+on:
+    workflow_dispatch:
+        inputs:
+            version:
+                description: Release version without a leading v
+                required: true
+                default: 0.1.5
+    push:
+        branches:
+            - syn/main
+
+permissions:
+    contents: read
+
+jobs:
+    build:
+        runs-on: ubuntu-24.04
+        env:
+            VARIANT_PATH: syn/release/build.json
+            VERSION: ${{ inputs.version || '0.1.5' }}
+        steps:
+            - uses: actions/checkout@v4
+
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 11.22.0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: apps/desktop/.node-version
+                  cache: pnpm
+
+            - name: Install dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Fetch web client
+              working-directory: apps/desktop
+              run: pnpm run fetch --noverify -d syn/release v1.12.27
+
+            - name: Build native modules
+              working-directory: apps/desktop
+              run: pnpm run build:native
+
+            - name: Build Linux packages
+              working-directory: apps/desktop
+              run: pnpm run build --x64 --publish never -l deb tar.gz
+
+            - uses: actions/upload-artifact@v4
+              with:
+                  name: syndicate-linux-${{ env.VERSION }}
+                  path: |
+                      apps/desktop/dist/*.deb
+                      apps/desktop/dist/*.tar.gz
+                  if-no-files-found: error
+                  retention-days: 14
