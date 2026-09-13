@@ -1,7 +1,7 @@
 {
     "appId": "app.syn.messenger.desktop",
     "name": "syn-messenger",
-    "productName": "SYN Messenger",
+    "productName": "Syndicate",
     "description": "Private, federated Matrix messaging from SYN Messenger",
     "desktopName": "syn-messenger.desktop",
     "protocols": ["syn", "matrix"]

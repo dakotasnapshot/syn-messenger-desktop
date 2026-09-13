@@ -14,7 +14,7 @@
     "disable_login_language_selector": false,
     "disable_3pid_login": false,
     "force_verification": false,
-    "brand": "SYN Messenger",
+    "brand": "Syndicate",
     "permalink_prefix": "https://synmessenger.com/chat/",
     "default_device_display_name": "SYN Desktop",
     "default_theme": "dark",

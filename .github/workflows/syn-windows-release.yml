@@ -52,8 +52,8 @@ jobs:
               shell: pwsh
               run: |
                   New-Item -ItemType Directory -Force windows-unsigned | Out-Null
-                  Copy-Item "apps/desktop/dist/SYN Messenger $env:VERSION.msi" windows-unsigned/
-                  Copy-Item "apps/desktop/dist/squirrel-windows/SYN Messenger Setup $env:VERSION.exe" windows-unsigned/
+                  Copy-Item "apps/desktop/dist/Syndicate $env:VERSION.msi" windows-unsigned/
+                  Copy-Item "apps/desktop/dist/squirrel-windows/Syndicate Setup $env:VERSION.exe" windows-unsigned/
 
             - name: Upload unsigned build for verification
               id: unsigned
@@ -79,7 +79,7 @@ jobs:
                   output-artifact-directory: windows-signed
                   parameters: |
                       Version: "${{ env.VERSION }}"
-                      ProductName: "SYN Messenger"
+                      ProductName: "Syndicate"
 
             - name: Upload signed release
               if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
