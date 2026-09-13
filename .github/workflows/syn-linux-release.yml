@@ -37,7 +37,11 @@ jobs:
 
             - name: Fetch web client
               working-directory: apps/desktop
-              run: pnpm run fetch --noverify -d syn/release v1.12.27
+              run: pnpm run fetch --noverify -d syn/release v1.12.27 || test -f webapp.asar
+
+            - name: Verify web client
+              working-directory: apps/desktop
+              run: test -f webapp.asar
 
             - name: Build native modules
               working-directory: apps/desktop
