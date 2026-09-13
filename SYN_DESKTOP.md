@@ -24,6 +24,8 @@ Watch transport, iOS notification-service rendering, Apple communication notific
 - macOS clients poll `https://synmessenger.com/desktop/update/macos/releases.json` after launch and hourly.
 - Signed updates download in the background and expose the existing **Restart to Update** action.
 - Publish the notarized universal ZIP and release metadata atomically; retain the DMG for first-time installation.
+- A desktop release is not complete when only the download-page DMG is published. Before announcing a release, verify the live feed's `currentRelease`, the updater ZIP URL, its full SHA-256, byte-range support, and an upgrade check from the previous installed version.
+- Upload the ZIP to a temporary filename first, verify it on the server, rename it into place, and replace `releases.json` last. This prevents field clients from seeing a partial or missing payload.
 - Never point SYN builds at Element's upstream update feed.
 
 ### Native encrypted-room search
