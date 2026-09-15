@@ -49,6 +49,33 @@ describe("UrlPreviewFetcher", () => {
         expect(await fetcher.fetchPreview("https://example.org", true)).toBeNull();
     });
 
+    it("should render a direct image locally when the homeserver preview fails", async () => {
+        const { fetcher, client } = getFetcher();
+        const link = "http://camera.test:5000/api/events/example/snapshot.jpg";
+        client.getUrlPreview.mockRejectedValue(new Error("M_UNKNOWN: URL blocked by IP blacklist"));
+
+        expect(await fetcher.fetchPreview(link, true)).toEqual({
+            link,
+            title: "snapshot.jpg",
+            siteName: "camera.test",
+            showTooltipOnLink: false,
+            image: {
+                imageThumb: link,
+                imageFull: link,
+                mxcImageFull: link,
+                imageType: "image/jpeg",
+                playable: false,
+            },
+        });
+    });
+
+    it("should not render a direct image fallback when media is hidden", async () => {
+        const { fetcher, client } = getFetcher();
+        client.getUrlPreview.mockRejectedValue(new Error("Forced test failure"));
+
+        expect(await fetcher.fetchPreview("http://camera.test/snapshot.jpg", false)).toBeNull();
+    });
+
     it("should return null when title equals the URL and there is no image", async () => {
         const { fetcher, client } = getFetcher();
         client.getUrlPreview.mockResolvedValueOnce({

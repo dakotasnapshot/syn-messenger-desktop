@@ -21,6 +21,15 @@ export const PREVIEW_HEIGHT_PX = 200;
 export const MIN_PREVIEW_PX = 96;
 export const MIN_IMAGE_SIZE_BYTES = 8192;
 
+const DIRECT_IMAGE_TYPES = new Map([
+    [".avif", "image/avif"],
+    [".gif", "image/gif"],
+    [".jpeg", "image/jpeg"],
+    [".jpg", "image/jpeg"],
+    [".png", "image/png"],
+    [".webp", "image/webp"],
+]);
+
 /**
  * Handles fetching and parsing URL previews.
  * Maintains a cache of previously fetched previews; call `clearCache` when
@@ -37,6 +46,29 @@ export class UrlPreviewFetcher {
 
     public clearCache(): void {
         this.cache.clear();
+    }
+
+    private directImagePreview(link: string, loadMedia: boolean): UrlPreview | null {
+        if (!loadMedia || !URL.canParse(link)) return null;
+
+        const url = new URL(link);
+        const extension = [...DIRECT_IMAGE_TYPES.keys()].find((type) => url.pathname.toLowerCase().endsWith(type));
+        if (!extension || (url.protocol !== "http:" && url.protocol !== "https:")) return null;
+
+        const title = decodeURIComponent(url.pathname.split("/").pop() || url.hostname);
+        return {
+            link,
+            title,
+            siteName: url.hostname,
+            showTooltipOnLink: this.showTooltips,
+            image: {
+                imageThumb: link,
+                imageFull: link,
+                mxcImageFull: link,
+                imageType: DIRECT_IMAGE_TYPES.get(extension),
+                playable: false,
+            },
+        };
     }
 
     /**
@@ -146,7 +178,7 @@ export class UrlPreviewFetcher {
             } else {
                 logger.error("Failed to get URL preview: ", error);
             }
-            return null;
+            return this.directImagePreview(link, loadMedia);
         }
 
         const { title, description, siteName } = UrlPreviewFetcher.getBaseMetadataFromResponse(response, link);
