@@ -19,12 +19,12 @@ Watch transport, iOS notification-service rendering, Apple communication notific
 
 ## Roadmap
 
-### Linux and Windows GIF picker parity
+### Cross-platform GIF picker parity
 
-- Include the GIPHY picker from the macOS 0.1.8 release in the next planned Linux and Windows desktop builds.
+- Include the GIPHY picker from the macOS 0.1.8 release in Android, Linux, Windows, and every current or future Syndicate client build.
 - Inject the production GIPHY API key through each platform's release configuration without committing the credential.
-- Verify search, trending GIFs, attribution, upload behavior, and encrypted-room delivery on both platforms before publishing.
-- No immediate Linux or Windows build or release is planned for this item.
+- Verify search, trending GIFs, attribution, upload behavior, and encrypted-room delivery on every supported platform before publishing.
+- No immediate Android, Linux, or Windows build or release is planned for this item.
 
 ### Automatic updates
 
