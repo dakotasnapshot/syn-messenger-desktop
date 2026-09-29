@@ -19,6 +19,13 @@ Watch transport, iOS notification-service rendering, Apple communication notific
 
 ## Roadmap
 
+### Linux and Windows GIF picker parity
+
+- Include the GIPHY picker from the macOS 0.1.8 release in the next planned Linux and Windows desktop builds.
+- Inject the production GIPHY API key through each platform's release configuration without committing the credential.
+- Verify search, trending GIFs, attribution, upload behavior, and encrypted-room delivery on both platforms before publishing.
+- No immediate Linux or Windows build or release is planned for this item.
+
 ### Automatic updates
 
 - macOS clients poll `https://synmessenger.com/desktop/update/macos/releases.json` after launch and hourly.
