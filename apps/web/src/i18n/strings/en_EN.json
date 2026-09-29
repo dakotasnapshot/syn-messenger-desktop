@@ -614,6 +614,11 @@
         "format_underline": "Underline",
         "format_unordered_list": "Bulleted list",
         "formatting_toolbar_label": "Formatting",
+        "gif_picker_download_error": "Couldn’t download that GIF.",
+        "gif_picker_error": "Couldn’t load GIFs. Try again.",
+        "gif_picker_error_title": "GIF unavailable",
+        "gif_picker_search": "Search GIFs",
+        "gif_picker_title": "GIFs",
         "link_modal": {
             "link_field_label": "Link",
             "text_field_label": "Text",

@@ -56,6 +56,7 @@ export interface WebConfigJson {
     force_verification?: boolean; // if true, users must verify new logins
 
     map_style_url?: string; // for location-shared maps
+    giphy_api_key?: string;
 
     embedded_pages?: {
         welcome_url?: string;

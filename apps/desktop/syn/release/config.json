@@ -1,5 +1,6 @@
 {
     "update_base_url": "https://synmessenger.com/desktop/update/",
+    "giphy_api_key": "__GIPHY_API_KEY__",
     "help_url": "https://synmessenger.com/support.html",
     "help_encryption_url": "https://synmessenger.com/support.html#encryption",
     "help_key_storage_url": "https://synmessenger.com/support.html#recovery",

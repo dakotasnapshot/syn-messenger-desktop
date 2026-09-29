@@ -18,6 +18,7 @@ import {
 import React, { type JSX, type ReactElement, type ReactNode, useContext } from "react";
 import {
     MicOnIcon,
+    ImageIcon,
     OverflowHorizontalIcon,
     PollsIcon,
     StickerIcon,
@@ -44,6 +45,9 @@ import { useSettingValue } from "../../../hooks/useSettings";
 import AccessibleButton, { type ButtonEvent } from "../elements/AccessibleButton";
 import { useScopedRoomContext } from "../../../contexts/ScopedRoomContext.tsx";
 import { useRoomUploadViewModel } from "../../../viewmodels/room/RoomUploadViewModel.tsx";
+import SdkConfig from "../../../SdkConfig.ts";
+import GIFPickerDialog from "../dialogs/GIFPickerDialog.tsx";
+import { downloadGiphyResult } from "../../../utils/GiphyClient.ts";
 
 interface IProps {
     addEmoji: (emoji: string) => boolean;
@@ -99,6 +103,7 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
                 />
             )),
             showStickersButton(props),
+            gifButton(roomUploadVM),
             voiceRecordingButton(props, narrow),
             props.showPollsButton ? pollButton(room, props.relation) : null,
             showLocationButton(props, room, matrixClient),
@@ -118,6 +123,7 @@ const MessageComposerButtons: React.FC<IProps> = (props: IProps) => {
         ];
         moreButtons = [
             showStickersButton(props),
+            gifButton(roomUploadVM),
             voiceRecordingButton(props, narrow),
             props.showPollsButton ? pollButton(room, props.relation) : null,
             showLocationButton(props, room, matrixClient),
@@ -169,6 +175,31 @@ function emojiButton(props: IProps): ReactElement {
             menuPosition={props.menuPosition}
             className="mx_MessageComposer_button"
         />
+    );
+}
+
+function gifButton(roomUploadVM: ReturnType<typeof useRoomUploadViewModel>): ReactElement | null {
+    const apiKey = SdkConfig.get("giphy_api_key");
+    if (!apiKey || apiKey === "__GIPHY_API_KEY__") return null;
+
+    const onClick = (): void => {
+        void Modal.createDialog(GIFPickerDialog, { apiKey }).finished.then(async ([result]) => {
+            if (!result) return;
+            try {
+                await roomUploadVM.initiateViaInputFiles([await downloadGiphyResult(result)]);
+            } catch {
+                Modal.createDialog(ErrorDialog, {
+                    title: _t("composer|gif_picker_error_title"),
+                    description: _t("composer|gif_picker_download_error"),
+                });
+            }
+        });
+    };
+
+    return (
+        <CollapsibleButton key="gif_picker" className="mx_MessageComposer_button" onClick={onClick} title="GIFs">
+            <ImageIcon />
+        </CollapsibleButton>
     );
 }
 

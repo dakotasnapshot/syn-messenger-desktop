@@ -1,0 +1,58 @@
+/*
+Copyright 2026 Hawthorn LLC
+
+SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Commercial
+Please see LICENSE files in the repository root for full details.
+*/
+
+.mx_GIFPickerDialog {
+    width: min(720px, 80vw);
+
+    .mx_GIFPickerDialog_search {
+        box-sizing: border-box;
+        width: 100%;
+        margin-block-end: 16px;
+        padding: 10px 12px;
+        border: 1px solid var(--cpd-color-border-interactive-secondary);
+        border-radius: 8px;
+        color: var(--cpd-color-text-primary);
+        background: var(--cpd-color-bg-canvas-default);
+    }
+
+    .mx_GIFPickerDialog_grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 8px;
+        max-height: 55vh;
+        overflow-y: auto;
+    }
+
+    .mx_GIFPickerDialog_result {
+        height: 140px;
+        padding: 0;
+        overflow: hidden;
+        border: 0;
+        border-radius: 8px;
+        cursor: pointer;
+        background: var(--cpd-color-bg-subtle-secondary);
+    }
+
+    .mx_GIFPickerDialog_result img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .mx_GIFPickerDialog_status {
+        padding: 48px 16px;
+        text-align: center;
+        color: var(--cpd-color-text-secondary);
+    }
+
+    .mx_GIFPickerDialog_attribution {
+        margin-block-start: 12px;
+        text-align: end;
+        font-size: var(--cpd-font-size-body-xs);
+        color: var(--cpd-color-text-secondary);
+    }
+}
