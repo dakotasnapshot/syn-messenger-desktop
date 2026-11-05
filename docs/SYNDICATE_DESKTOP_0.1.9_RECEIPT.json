@@ -1,0 +1,49 @@
+{
+  "version": "0.1.9",
+  "platforms": [
+    {
+      "platform": "windows",
+      "version": "0.1.9",
+      "source": "1433809454953ed41fcdb9f068a9b6d81bb22e65",
+      "configurationVerified": true,
+      "gifCodeVerified": true,
+      "rendererSHA256": "7f6559ff25267f3197e603055a1a6952f0f4fced943afb207d68001d6e09d6bc"
+    },
+    {
+      "platform": "linux",
+      "version": "0.1.9",
+      "source": "e862df65277328c5b79e026841b65a0f2efebdd5",
+      "configurationVerified": true,
+      "gifCodeVerified": true,
+      "rendererSHA256": "d58c60742d5e5c00918a7f1e969024d944eae4700cc79fa99c3c45a6d3ec2046"
+    }
+  ],
+  "installers": [
+    {
+      "file": "Syndicate-0.1.9-Linux-x86_64.deb",
+      "bytes": 137542192,
+      "sha256": "4cfce0f050797b4905403026ac96ca56d4f111553458753434f5ff4f63dfeac6"
+    },
+    {
+      "file": "Syndicate-0.1.9-Linux-x86_64.tar.gz",
+      "bytes": 169690118,
+      "sha256": "f5f49a98c4e7c943378ab4257029415c227c6f53a0949f67c14a51fb6868249a"
+    },
+    {
+      "file": "Syndicate-0.1.9-Windows-x64.msi",
+      "bytes": 148656128,
+      "sha256": "4942056767a0e31f35b82255aaa3bc964c7d9f6459cdf418c790c973f1f09844"
+    },
+    {
+      "file": "Syndicate-Setup-0.1.9-Windows-x64.exe",
+      "bytes": 189509632,
+      "sha256": "56f472914b524570be3756e74491a92ad90081e3c0241ff6fe0b76fa03bd2a49"
+    }
+  ],
+  "ci": {
+    "windows": 42017041651,
+    "linux": 42019953709,
+    "encryptedGif": 42018676902,
+    "windowsUpgrade": 42018466430
+  }
+}

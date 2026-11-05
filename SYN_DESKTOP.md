@@ -21,7 +21,7 @@ Watch transport, iOS notification-service rendering, Apple communication notific
 
 ### Cross-platform GIF picker parity
 
-- Include the GIPHY picker from the macOS 0.1.8 release in Android, Linux, Windows, and every current or future Syndicate client build.
+- Windows/Linux 0.1.9 ship the GIPHY picker from macOS 0.1.8. Android and future clients remain roadmap items.
 - Inject the production GIPHY API key through each platform's release configuration without committing the credential.
 - Verify search, trending GIFs, attribution, upload behavior, and encrypted-room delivery on every supported platform before publishing.
 - Windows/Linux 0.1.9 builds use the same customized renderer as macOS, with required release-key injection. Android remains a separate parity item.
@@ -64,3 +64,5 @@ Parity: GIF search/trending/attribution through Matrix media upload (including e
 Windows EXE/Squirrel installs poll `/desktop/update/win32/x64/RELEASES`; publish complete `.nupkg` before RELEASES. MSI installations do not use Squirrel automatic updates. Linux DEB/tar.gz do not support Electron auto-update; users install the new package. Do not claim automatic Linux delivery.
 
 Linux packaging hyphenates the runtime name to `SYN-Messenger`. Profile fallback accepts that identity and preserves `Syndicate` as the Linux keyring identity when retaining a 0.1.5 profile. Keep this before safeStorage initialization; never copy, reset or re-encrypt profile stores to work around naming changes. Named profiles remain isolated.
+
+Verified desktop release procedure, artifacts, source checkpoints and acceptance: [0.1.9 release runbook](docs/SYNDICATE_DESKTOP_0.1.9.md).
