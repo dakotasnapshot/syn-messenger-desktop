@@ -7,7 +7,7 @@ import { test, expect } from "../../element-web-test";
 
 test.use({ displayName: "Alice", config: { giphy_api_key: "synthetic-test-key" } });
 
-test("GIF trending, search and encrypted upload", async ({ page, app, user }) => {
+test("GIF trending, search and encrypted upload", async ({ page, app, user }, testInfo) => {
     test.slow();
     const gif = Buffer.from("R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7", "base64");
     const endpoints: string[] = [];
@@ -37,7 +37,8 @@ test("GIF trending, search and encrypted upload", async ({ page, app, user }) =>
         initial_state: [{ type: "m.room.encryption", state_key: "", content: { algorithm: "m.megolm.v1.aes-sha2" } }],
     });
     await app.viewRoomByName("GIF parity test");
-    await page.getByRole("button", { name: "GIFs", exact: true }).click();
+    await page.locator(".mx_MessageComposer_buttonMenu").click();
+    await page.getByRole("menuitem", { name: "GIFs", exact: true }).click();
     const picker = page.locator(".mx_GIFPickerDialog");
     await expect(picker.getByText("Powered by GIPHY")).toBeVisible();
     await expect(picker.getByRole("button", { name: "Synthetic cat" })).toBeVisible();
@@ -71,4 +72,5 @@ test("GIF trending, search and encrypted upload", async ({ page, app, user }) =>
             }, roomId),
         )
         .toBe(true);
+    await page.screenshot({ path: testInfo.outputPath("encrypted-gif.png") });
 });

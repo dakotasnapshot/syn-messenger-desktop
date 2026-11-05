@@ -8,6 +8,7 @@ import config from "./playwright.config.ts";
 
 export default defineConfig({
     ...config,
+    retries: 0,
     webServer: {
         command: "python3 -m http.server 8080 --bind 127.0.0.1 --directory webapp",
         url: "http://localhost:8080/config.json",
