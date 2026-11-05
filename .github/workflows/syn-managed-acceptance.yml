@@ -84,7 +84,7 @@ jobs:
                   timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs tar.gz "$archive" "$portable/syn-messenger" "$PWD/acceptance/portable" 2>&1 | tee acceptance/portable-harness.log
                   expected=$(sha256sum apps/desktop/webapp.asar | cut -d' ' -f1)
                   for i in $(seq 1 30); do
-                    actual=$(sha256sum "$portable/resources/webapp.asar" | cut -d' ' -f1)
+                    actual=$(sha256sum "$portable/resources/webapp.asar" 2>/dev/null | cut -d' ' -f1 || true)
                     [ "$actual" != "$expected" ] || break
                     sleep 1
                   done
@@ -94,7 +94,7 @@ jobs:
                   # is rotated instead of blocking all subsequent updates.
                   timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs tar.gz "$archive" "$portable/syn-messenger" "$PWD/acceptance/portable-repeat" 2>&1 | tee acceptance/portable-repeat-harness.log
                   for i in $(seq 1 30); do
-                    previous=$(sha256sum "$portable.previous/resources/webapp.asar" | cut -d' ' -f1)
+                    previous=$(sha256sum "$portable.previous/resources/webapp.asar" 2>/dev/null | cut -d' ' -f1 || true)
                     [ "$previous" != "$expected" ] || break
                     sleep 1
                   done
