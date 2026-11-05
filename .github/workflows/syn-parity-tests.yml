@@ -7,6 +7,10 @@ on:
                 description: Optional successful Windows artifact run for the previous-install upgrade check
                 required: false
                 type: string
+            managed_source_preflight:
+                description: Preflight current source updater with existing candidate payloads (not packaged acceptance)
+                type: boolean
+                default: false
             linux_run_id:
                 description: Built Linux candidate run for exact packaged updater acceptance
                 required: false
@@ -131,5 +135,6 @@ jobs:
         uses: ./.github/workflows/syn-managed-acceptance.yml
         with:
             linux_run_id: ${{ inputs.linux_run_id }}
+            use_source_updater: ${{ inputs.managed_source_preflight || false }}
             windows_run_id: ${{ inputs.managed_windows_run_id }}
         secrets: inherit

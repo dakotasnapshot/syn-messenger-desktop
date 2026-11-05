@@ -28,7 +28,7 @@ beforeEach(async () => {
     vi.resetModules(); vi.clearAllMocks();
     mocks.spawn.mockImplementation(() => {
         const child = Object.assign(new EventEmitter(), { stdout: new PassThrough(), stderr: new PassThrough(), unref: vi.fn() });
-        queueMicrotask(() => child.stdout.write("SYNDICATE_INSTALL_STARTED\n"));
+        queueMicrotask(() => { void fs.writeFile(path.join(mocks.data, "syndicate-updates", `msi-started-${realProcess.pid}.txt`), "SYNDICATE_INSTALL_STARTED"); });
         return child;
     });
     mocks.data = await fs.mkdtemp(path.join(os.tmpdir(), "syn-updater-test-"));

@@ -8,6 +8,10 @@ on:
             windows_run_id:
                 required: false
                 type: string
+            use_source_updater:
+                required: false
+                type: boolean
+                default: false
 permissions:
     contents: read
     actions: read
@@ -43,6 +47,12 @@ jobs:
                   node apps/desktop/scripts/extract-managed-test-modules.mjs "$candidate/resources/app.asar" "$PWD/acceptance/modules"
                   cp "$candidate/resources/webapp.asar" apps/desktop/webapp.asar
                   echo "MANAGED_TEST_MODULE_DIR=$PWD/acceptance/modules" >> "$GITHUB_ENV"
+            - name: Optional source updater preflight (not packaged acceptance)
+              if: ${{ inputs.use_source_updater }}
+              run: |
+                  pnpm exec tsc -p apps/desktop/tsconfig.json --noCheck
+                  node apps/desktop/scripts/extract-managed-test-modules.mjs apps/desktop/lib acceptance/modules --source
+
             - name: Fetch exact previously published Linux installers
               uses: actions/download-artifact@v4
               with:
@@ -100,6 +110,8 @@ jobs:
                       acceptance/native-result.txt
                       acceptance/*-harness.log
                       acceptance/modules/packaged-module-hashes.json
+                      acceptance/modules/source-preflight-module-hashes.json
+                      acceptance/**/install.log
                   if-no-files-found: warn
 
     windows:
@@ -138,6 +150,12 @@ jobs:
                   node apps/desktop/scripts/extract-managed-test-modules.mjs "$app" "$pwd/acceptance/modules"
                   Copy-Item "$pwd/acceptance/candidate/lib/net45/resources/webapp.asar" apps/desktop/webapp.asar
                   "MANAGED_TEST_MODULE_DIR=$pwd/acceptance/modules" | Out-File -FilePath $env:GITHUB_ENV -Append
+            - name: Optional source updater preflight (not packaged acceptance)
+              if: ${{ inputs.use_source_updater }}
+              run: |
+                  pnpm exec tsc -p apps/desktop/tsconfig.json --noCheck
+                  node apps/desktop/scripts/extract-managed-test-modules.mjs apps/desktop/lib acceptance/modules --source
+
             - name: Fetch exact previously published Windows installers
               uses: actions/download-artifact@v4
               with:
@@ -183,4 +201,6 @@ jobs:
                       acceptance/native-result.txt
                       acceptance/msi-harness.log
                       acceptance/modules/packaged-module-hashes.json
+                      acceptance/modules/source-preflight-module-hashes.json
+                      acceptance/**/install.log
                   if-no-files-found: warn

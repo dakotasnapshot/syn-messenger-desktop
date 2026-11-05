@@ -129,21 +129,24 @@ export async function installManagedUpdate(): Promise<void> {
             const launchArgs = process.argv.slice(1).map(windowsArgument).join(" ");
             const launch = `Start-Process -FilePath ${executable}${launchArgs ? ` -ArgumentList ${quote(launchArgs)}` : ""}`;
             const log = quote(path.join(path.dirname(file), "install.log"));
-            // An unprivileged detached helper survives Restart Manager closing
-            // the old app. It launches the replacement without administrator rights.
-            const script = `$ErrorActionPreference='Stop'; $p=Start-Process -FilePath "$env:WINDIR\\System32\\msiexec.exe" -ArgumentList ${quote(args)} -Verb RunAs -PassThru; [Console]::Out.WriteLine('SYNDICATE_INSTALL_STARTED'); $p.WaitForExit(); Set-Content -LiteralPath ${log} -Value ("MSI exit: " + $p.ExitCode); Wait-Process -Id ${process.pid} -Timeout 120 -ErrorAction SilentlyContinue; ${launch}`;
-            const child = spawn("powershell.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")], { detached: true, stdio: ["ignore", "pipe", "pipe"] });
-            await new Promise<void>((resolve, reject) => {
-                let output = "";
-                child.once("error", reject);
-                child.once("exit", code => { if (!output.includes("SYNDICATE_INSTALL_STARTED")) reject(new Error(`Windows installer authorization failed (${code})`)); });
-                child.stdout!.on("data", chunk => {
-                    output += String(chunk);
-                    if (output.includes("SYNDICATE_INSTALL_STARTED")) resolve();
-                });
-                // Consume stderr so authorization cancellation cannot fill a pipe.
-                child.stderr!.on("data", () => undefined);
-            });
+            const ready = path.join(path.dirname(file), `msi-started-${process.pid}.txt`);
+            await fs.rm(ready, { force: true });
+            // Detached Windows consoles do not reliably deliver pipe output.
+            // A private acknowledgement file records successful UAC admission.
+            const script = `$ErrorActionPreference='Stop'; $p=Start-Process -FilePath "$env:WINDIR\\System32\\msiexec.exe" -ArgumentList ${quote(args)} -Verb RunAs -PassThru; [System.IO.File]::WriteAllText(${quote(ready)},'SYNDICATE_INSTALL_STARTED'); $p.WaitForExit(); Set-Content -LiteralPath ${log} -Value ("MSI exit: " + $p.ExitCode); Wait-Process -Id ${process.pid} -Timeout 120 -ErrorAction SilentlyContinue; ${launch}`;
+            const child = spawn("powershell.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")], { detached: true, windowsHide: true, stdio: ["ignore", "ignore", "pipe"] });
+            let closed = false;
+            let failure: Error | undefined;
+            let detail = "";
+            child.once("error", error => { failure = error; closed = true; });
+            child.once("close", code => { closed = true; failure ??= new Error(`Windows installer authorization failed (${code})`); });
+            child.stderr!.on("data", chunk => { detail = (detail + String(chunk)).slice(-2048); });
+            while (true) {
+                if (await fs.readFile(ready, "utf8").then(s => s.trim() === "SYNDICATE_INSTALL_STARTED").catch(() => false)) break;
+                if (closed) throw new Error(`${failure?.message ?? "Windows installer could not start"}${detail.trim() ? ": " + detail.trim() : ""}`);
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            await fs.rm(ready, { force: true });
             child.unref(); global.appQuitting = true; app.quit();
         } else if (kind === "deb") {
             // Direct argv, no shell and no broad apt-get repair/unauthenticated flags.
