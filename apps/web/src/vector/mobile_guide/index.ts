@@ -14,7 +14,7 @@ import { logger } from "matrix-js-sdk/src/logger";
 import { getVectorConfig } from "../getconfig";
 import { MobileAppVariant, mobileApps, updateMobilePage } from "./mobile-apps.ts";
 
-function onBackToElementClick(): void {
+function onBackToSyndicateClick(): void {
     sessionStorage.setItem("skip_mobile_redirect", "true");
     window.location.href = "../";
 }
@@ -23,7 +23,7 @@ function onBackToElementClick(): void {
 function renderConfigError(message: string): void {
     const contactMsg =
         "If this is unexpected, please contact your system administrator or technical support representative.";
-    message = `<h2>Error loading Element</h2><p>${message}</p><p>${contactMsg}</p>`;
+    message = `<h2>Error loading Syndicate</h2><p>${message}</p><p>${contactMsg}</p>`;
 
     const toHide = document.getElementsByClassName("mx_HomePage_container");
     const errorContainers = document.getElementsByClassName(
@@ -116,19 +116,10 @@ async function initPage(): Promise<void> {
     if (hsUrl && !hsUrl.endsWith("/")) hsUrl += "/";
     if (isUrl && !isUrl.endsWith("/")) isUrl += "/";
 
-    let deepLinkUrl = `https://mobile.element.io${metadata.deepLinkPath}`;
+    const deepLinkUrl = "https://synmessenger.com/chat/#/login";
 
-    if (metadata.usesLegacyDeepLink) {
-        deepLinkUrl += `?hs_url=${encodeURIComponent(hsUrl)}`;
-        if (isUrl) {
-            deepLinkUrl += `&is_url=${encodeURIComponent(isUrl)}`;
-        }
-    } else if (serverName) {
-        deepLinkUrl += `?account_provider=${serverName}`;
-    }
-
-    // Not part of updateMobilePage as the link is only shown on mobile_guide and not on mobile.element.io
-    document.getElementById("back_to_element_button")!.onclick = onBackToElementClick;
+    // Return to the Syndicate web client without clearing account storage.
+    document.getElementById("back_to_syndicate_button")!.onclick = onBackToSyndicateClick;
 
     updateMobilePage(metadata, deepLinkUrl, serverName ?? hsUrl);
 }

@@ -6,10 +6,10 @@ exports[`<ErrorView /> > should match snapshot 1`] = `
     class="mx_ErrorView cpd-theme-light"
   >
     <img
-      alt="Element"
+      alt="Syndicate"
       class="mx_ErrorView_logo"
       height="160"
-      src="themes/element/img/logos/element-app-logo.png"
+      src="vector-icons/1024.png"
     />
     <div
       class="mx_ErrorView_container"
@@ -40,10 +40,10 @@ exports[`<UnsupportedBrowserView /> > should match snapshot 1`] = `
     class="mx_ErrorView cpd-theme-light"
   >
     <img
-      alt="Element"
+      alt="Syndicate"
       class="mx_ErrorView_logo"
       height="160"
-      src="themes/element/img/logos/element-app-logo.png"
+      src="vector-icons/1024.png"
     />
     <div
       class="mx_ErrorView_container"
@@ -51,12 +51,12 @@ exports[`<UnsupportedBrowserView /> > should match snapshot 1`] = `
       <h1
         class="_typography_6v6n8_153 _font-heading-md-semibold_6v6n8_112"
       >
-        Element does not support this browser
+        Syndicate does not support this browser
       </h1>
       <p
         class="_typography_6v6n8_153 _font-body-lg-regular_6v6n8_69"
       >
-        Element uses some browser features which are not available in your current browser. Try updating this browser if you're not using the latest version and try again.
+        Syndicate uses some browser features which are not available in your current browser. Try updating this browser if you're not using the latest version and try again.
       </p>
       <p
         class="_typography_6v6n8_153 _font-body-lg-regular_6v6n8_69"
@@ -136,7 +136,7 @@ exports[`<UnsupportedBrowserView /> > should match snapshot 1`] = `
     <h2
       class="_typography_6v6n8_153 _font-heading-sm-semibold_6v6n8_93"
     >
-      Use Element Desktop instead
+      Use Syndicate Desktop instead
     </h2>
     <div
       class="_flex_4dswl_9 mx_ErrorView_flexContainer"
@@ -146,7 +146,7 @@ exports[`<UnsupportedBrowserView /> > should match snapshot 1`] = `
         class="_button_1nw83_8 _has-icon_1nw83_60"
         data-kind="secondary"
         data-size="lg"
-        href="https://packages.element.io/desktop/install/macos/Element.dmg"
+        href="https://synmessenger.com/downloads/"
         role="link"
         tabindex="0"
       >
@@ -170,7 +170,7 @@ exports[`<UnsupportedBrowserView /> > should match snapshot 1`] = `
         class="_button_1nw83_8 _has-icon_1nw83_60"
         data-kind="secondary"
         data-size="lg"
-        href="https://packages.element.io/desktop/install/win32/x64/Element%20Setup.exe"
+        href="https://synmessenger.com/downloads/"
         role="link"
         tabindex="0"
       >
@@ -192,7 +192,7 @@ exports[`<UnsupportedBrowserView /> > should match snapshot 1`] = `
         class="_button_1nw83_8 _has-icon_1nw83_60"
         data-kind="secondary"
         data-size="lg"
-        href="https://packages.element.io/desktop/install/win32/arm64/Element%20Setup.exe"
+        href="https://synmessenger.com/downloads/"
         role="link"
         tabindex="0"
       >
@@ -214,7 +214,7 @@ exports[`<UnsupportedBrowserView /> > should match snapshot 1`] = `
         class="_button_1nw83_8 _has-icon_1nw83_60"
         data-kind="secondary"
         data-size="lg"
-        href="https://element.io/download#linux"
+        href="https://synmessenger.com/downloads/#linux"
         role="link"
         tabindex="0"
       >
@@ -262,7 +262,7 @@ exports[`<UnsupportedBrowserView /> > should match snapshot 1`] = `
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: start; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-6x); --mx-flex-wrap: nowrap;"
     >
       <a
-        href="https://apps.apple.com/app/vector/id1083446067"
+        href="https://apps.apple.com/app/id6809166852"
         rel="noreferrer noopener"
         target="_blank"
       >
@@ -273,7 +273,7 @@ exports[`<UnsupportedBrowserView /> > should match snapshot 1`] = `
         />
       </a>
       <a
-        href="https://play.google.com/store/apps/details?id=im.vector.app"
+        href="https://synmessenger.com/downloads/#android"
         rel="noreferrer noopener"
         target="_blank"
       >
@@ -281,17 +281,6 @@ exports[`<UnsupportedBrowserView /> > should match snapshot 1`] = `
           alt="Google Play Store"
           height="64"
           src="themes/element/img/download/google.svg"
-        />
-      </a>
-      <a
-        href="https://f-droid.org/repository/browse/?fdid=im.vector.app"
-        rel="noreferrer noopener"
-        target="_blank"
-      >
-        <img
-          alt="F-Droid"
-          height="64"
-          src="themes/element/img/download/fdroid.svg"
         />
       </a>
     </div>

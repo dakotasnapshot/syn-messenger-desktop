@@ -641,7 +641,7 @@
         "stop_voice_message": "停止录音",
         "voice_message_button": "语音消息"
     },
-    "console_dev_note": "如果你知道你在做什么，Element 是开源的，请务必查看我们的 GitHub（https://github.com/vector-im/element-web/）并做出贡献！",
+    "console_dev_note": "如果你知道你在做什么，Syndicate 是开源的，请务必查看我们的 GitHub（https://github.com/dakotasnapshot/syn-messenger-desktop/）并做出贡献！",
     "console_scam_warning": "如果有人告诉你在这里复制或粘贴某些内容，那么你很有可能被诈骗！",
     "console_wait": "请三思!",
     "create_room": {
@@ -870,7 +870,7 @@
         "setting_definition": "设置定义：",
         "setting_id": "设置 ID",
         "settings": {
-            "elementCallUrl": "Element Call URL"
+            "elementCallUrl": "Syndicate Call URL"
         },
         "settings_explorer": "设置浏览器",
         "show_empty_content_events": "以空白内容显示事件",
@@ -1103,11 +1103,11 @@
         "hs_blocked": "此主服务器已被其管理员屏蔽。",
         "invalid_configuration_mixed_server": "配置无效：“default_hs_url”不能与“default_server_name”或“default_server_config”同时指定。",
         "invalid_configuration_no_server": "配置无效：未指定默认服务器。",
-        "invalid_json": "你的 Element 配置包含无效的 JSON。请修正此问题并重载页面。",
+        "invalid_json": "你的 Syndicate 配置包含无效的 JSON。请修正此问题并重载页面。",
         "invalid_json_detail": "来自解析器的消息：%(message)s",
         "invalid_json_generic": "无效 JSON",
         "mau": "此主服务器已达到每月活跃用户数量限制。",
-        "misconfigured": "Element 配置错误",
+        "misconfigured": "Syndicate 配置错误",
         "mixed_content": "当浏览器地址栏中显示 HTTPS 网址时，无法通过 HTTP 连接到主服务器。请使用 HTTPS 或<a>启用不安全的脚本</a>。",
         "non_urgent_echo_failure_toast": "你的服务器不响应某些<a>请求</a>。",
         "resource_limits": "该主服务器已超出其资源限制。",
@@ -1498,7 +1498,7 @@
         "custom_themes": "支持添加自定义主题",
         "dynamic_room_predecessors": "动态房间前身",
         "dynamic_room_predecessors_description": "需要启用 MSC3946 以支持“迟到房间归档”。",
-        "element_call_video_rooms": "Element Call 视频房间",
+        "element_call_video_rooms": "Syndicate Call 视频房间",
         "encrypted_state_events": "已加密的状态事件",
         "encrypted_state_events_description": "启用加密状态事件的实验性支持，此功能会对服务器隐藏房间名称与主题等元数据。这些元数据对之后加入房间的用户与不支持 MSC4362 的客户端隐藏。",
         "exclude_insecure_devices": "发送或接收消息时排除不安全的设备",
@@ -1506,7 +1506,7 @@
         "experimental_description": "感觉很有实验性？试试我们正在开发的最新创意。这些功能尚未最终确定；它们可能不稳定，可能会改变，也可能被完全放弃。<a>了解更多</a>。",
         "experimental_section": "早期预览",
         "extended_profiles_msc_support": "需要服务器支持 MSC4133",
-        "feature_disable_call_per_sender_encryption": "为 Element Call 禁用“按每个发送者加密”",
+        "feature_disable_call_per_sender_encryption": "为 Syndicate Call 禁用“按每个发送者加密”",
         "feature_retention": {
             "description": "当消息到达配置的保留期限时自动从房间移除该消息。当前仅支持为“已读消息”设置。",
             "disabled_sliding_sync": "当滑动同步启用时无法启用保留期。",
@@ -1551,7 +1551,7 @@
         "render_reaction_images": "在反应中渲染自定义图像",
         "render_reaction_images_description": "有时被称为“自定义 Emoji”。",
         "sliding_sync": "滑动同步模式",
-        "sliding_sync_description": "正在处于开发中，并且一旦启用就无法禁用。当前与 Element Call 不兼容。",
+        "sliding_sync_description": "正在处于开发中，并且一旦启用就无法禁用。当前与 Syndicate Call 不兼容。",
         "sliding_sync_disabled_notice": "重新登录以禁用",
         "sliding_sync_server_no_support": "服务器缺少支持",
         "unrealiable_e2e": "在加密房间中不可靠",
@@ -2978,7 +2978,7 @@
             "auto_gain_control": "自动增益控制",
             "dialog_title": "<strong>设置：</strong>语音与视频",
             "echo_cancellation": "回声消除",
-            "echo_cancellation_description": "在通话期间移除回声。此设置亦将应用于 Element Call。",
+            "echo_cancellation_description": "在通话期间移除回声。此设置亦将应用于 Syndicate Call。",
             "enable_fallback_ice_server": "允许备选的通话辅助服务器",
             "enable_fallback_ice_server_description": "仅用于你所在的主服务器不提供时。你的 IP 地址会在通话期间被分享。",
             "enable_legacy_calls": "启用旧版语音视频通话",
@@ -2986,7 +2986,7 @@
             "mirror_local_feed": "镜像本地视频源",
             "missing_permissions_prompt": "要参与通话，请为 %(brand)s 授予音视频设备的访问权。",
             "noise_suppression": "降噪",
-            "noise_suppression_description": "在通话期间降低背景噪音。此设置亦将应用于 Element Call。",
+            "noise_suppression_description": "在通话期间降低背景噪音。此设置亦将应用于 Syndicate Call。",
             "permissions": "允许访问麦克风和摄像头",
             "request_permissions": "请求",
             "title": "语音与视频",
@@ -3848,7 +3848,7 @@
         "disabled_no_perms_start_video_call": "你无权发起视频通话",
         "disabled_no_perms_start_voice_call": "你无权发起语音通话",
         "disabled_ongoing_call": "通话中",
-        "element_call": "Element Call",
+        "element_call": "Syndicate Call",
         "enable_camera": "打开摄像头",
         "enable_microphone": "取消静音麦克风",
         "expand": "返回到通话",
@@ -3922,7 +3922,7 @@
     "web_default_device_name": "%(appName)s：%(browserName)s 运行于 %(osName)s",
     "welcome": {
         "tagline_element": "更快速、更简洁。",
-        "title_element": "融入 Element",
+        "title_element": "融入 Syndicate",
         "title_generic": "欢迎使用 %(brand)s"
     },
     "widget": {

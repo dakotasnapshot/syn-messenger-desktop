@@ -13,15 +13,15 @@ import { type DeepReadonly } from "shared-types";
 import { SnakedObject } from "./utils/SnakedObject";
 import { type IConfigOptions, type ConfigOptions } from "./IConfigOptions";
 import { isObject, objectClone } from "./utils/objects";
-import ElementDesktopLogoSvg from "../res/img/element-desktop-logo.svg";
+import SyndicateLogoSvg from "../res/img/syndicate-logo.svg";
 
 // see element-web config.md for docs, or the IConfigOptions interface for dev docs
 export const DEFAULTS = {
-    brand: "Element",
+    brand: "Syndicate",
     branding: {
-        logo_link_url: "https://element.io",
-        auth_header_logo_url: "themes/element/img/logos/element-logo.svg",
-        welcome_background_url: "themes/element/img/backgrounds/lake.jpg",
+        logo_link_url: "https://synmessenger.com/",
+        auth_header_logo_url: "img/syndicate-logo.svg",
+        welcome_background_url: "img/syndicate-background.svg",
     },
     help_url: "https://synmessenger.com/support.html",
     help_encryption_url: "https://synmessenger.com/support.html#encryption",
@@ -36,7 +36,7 @@ export const DEFAULTS = {
         preferred_domain: "meet.element.io",
     },
     element_call: {
-        brand: "Element Call",
+        brand: "Syndicate Call",
     },
 
     // @ts-ignore - we deliberately use the camelCase version here so we trigger
@@ -45,29 +45,28 @@ export const DEFAULTS = {
     // be preferred over their config.
     desktopBuilds: {
         available: true,
-        logo: ElementDesktopLogoSvg,
-        url: "https://element.io/get-started",
+        logo: SyndicateLogoSvg,
+        url: "https://synmessenger.com/downloads/",
     },
 
     feedback: {
-        existing_issues_url:
-            "https://github.com/vector-im/element-web/issues?q=is%3Aopen+is%3Aissue+sort%3Areactions-%2B1-desc",
-        new_issue_url: "https://github.com/vector-im/element-web/issues/new/choose",
+        existing_issues_url: "https://synmessenger.com/support.html",
+        new_issue_url: "https://synmessenger.com/support.html",
     },
 
     desktop_builds: {
         available: true,
         logo: "vector-icons/1024.png",
-        url: "https://element.io/download",
-        url_macos: "https://packages.element.io/desktop/install/macos/Element.dmg",
-        url_win64: "https://packages.element.io/desktop/install/win32/x64/Element%20Setup.exe",
-        url_win64arm: "https://packages.element.io/desktop/install/win32/arm64/Element%20Setup.exe",
-        url_linux: "https://element.io/download#linux",
+        url: "https://synmessenger.com/downloads/",
+        url_macos: "https://synmessenger.com/downloads/",
+        url_win64: "https://synmessenger.com/downloads/",
+        url_win64arm: "https://synmessenger.com/downloads/",
+        url_linux: "https://synmessenger.com/downloads/#linux",
     },
     mobile_builds: {
-        ios: "https://apps.apple.com/app/vector/id1083446067",
-        android: "https://play.google.com/store/apps/details?id=im.vector.app",
-        fdroid: "https://f-droid.org/repository/browse/?fdid=im.vector.app",
+        ios: "https://apps.apple.com/app/id6809166852",
+        android: "https://synmessenger.com/downloads/#android",
+        fdroid: "",
     },
 } satisfies ConfigOptions;
 

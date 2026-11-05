@@ -468,7 +468,7 @@ export default class SecurityRoomSettingsTab extends React.Component<IProps, ISt
                     {},
                     {
                         a: (sub) => (
-                            <ExternalLink href="https://element.io/en/help#e2ee-history-sharing">{sub}</ExternalLink>
+                            <ExternalLink href="https://synmessenger.com/support.html#encryption">{sub}</ExternalLink>
                         ),
                     },
                 )}

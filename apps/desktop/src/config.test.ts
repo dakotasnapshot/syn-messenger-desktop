@@ -53,7 +53,7 @@ describe("loadConfig", () => {
 
     it("should ignore localConfigPath if does not exist", async () => {
         const config = await loadConfig("/invalid-path/custom-config.json");
-        expect(config.brand).toBe("Element");
+        expect(config.brand).toBe("Syndicate");
         expect(config.web_base_url).toBe("https://chat.org.com");
         expect(config.default_hs_url).toBe("https://matrix.org.com");
     });
@@ -88,7 +88,7 @@ describe("loadConfig", () => {
         });
 
         const config = await loadConfig("/home/custom-config.json");
-        expect(config.help_url).toBe("https://element.io/help");
+        expect(config.help_url).toBe("https://synmessenger.com/support.html");
         expect(config.web_base_url).toBe("https://chat.org.com");
     });
 
@@ -102,8 +102,8 @@ describe("loadConfig", () => {
         );
 
         const config = await loadConfig(undefined);
-        expect(config.help_url).toBe("https://element.io/help");
-        expect(config.web_base_url).toBe("https://app.element.io/");
+        expect(config.help_url).toBe("https://synmessenger.com/support.html");
+        expect(config.web_base_url).toBe("https://synmessenger.com/chat/");
     });
 
     it("should handle key conflicts around default homeserver config", async () => {
@@ -132,7 +132,7 @@ describe("loadConfig", () => {
         );
 
         const config = await loadConfig("/home/custom-config.json");
-        expect(config.help_url).toBe("https://element.io/help");
+        expect(config.help_url).toBe("https://synmessenger.com/support.html");
         expect(config.web_base_url).toBe("https://chat.org.com");
         expect(config.modules).toStrictEqual(["/webapp/modules/banner", "module2"]);
     });
@@ -146,8 +146,8 @@ describe("loadConfig", () => {
         expect(dialog.showMessageBox).toHaveBeenCalledWith({
             detail: "Unexpected token 'N', \"NOT_JSON\" is not valid JSON",
             message:
-                "Your custom Element configuration contains invalid JSON. Please correct the problem and reopen Element.",
-            title: "Your Element is misconfigured",
+                "Your custom Syndicate configuration contains invalid JSON. Please correct the problem and reopen Syndicate.",
+            title: "Your Syndicate is misconfigured",
             type: "error",
         });
     });

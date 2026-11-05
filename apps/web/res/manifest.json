@@ -1,8 +1,8 @@
 {
-    "name": "Element",
-    "short_name": "Element",
+    "name": "Syndicate",
+    "short_name": "Syndicate",
     "display": "standalone",
-    "theme_color": "#76CFA6",
+    "theme_color": "#6539C8",
     "start_url": "index.html",
     "icons": [
         {
@@ -43,18 +43,8 @@
     ],
     "related_applications": [
         {
-            "platform": "play",
-            "url": "https://play.google.com/store/apps/details?id=im.vector.app",
-            "id": "im.vector.app"
-        },
-        {
-            "platform": "f-droid",
-            "url": "https://f-droid.org/repository/browse/?fdid=im.vector.app",
-            "id": "im.vector.app"
-        },
-        {
             "platform": "itunes",
-            "url": "https://apps.apple.com/app/vector/id1083446067"
+            "url": "https://apps.apple.com/app/id6809166852"
         }
     ]
 }

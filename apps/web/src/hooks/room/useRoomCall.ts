@@ -128,7 +128,7 @@ export const useRoomCall = (
     useEffect(() => {
         if (useElementCallExclusively && !serverIsConfiguredForElementCall) {
             logger.warn(
-                "Element Call is configured to be used exclusively, but the server is not configured with a transport",
+                "Syndicate Call is configured to be used exclusively, but the server is not configured with a transport",
             );
         }
     }, [useElementCallExclusively, serverIsConfiguredForElementCall]);

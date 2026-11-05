@@ -605,7 +605,7 @@
         "stop_voice_message": "Pārtraukt ierakstīšanu",
         "voice_message_button": "Balss ziņa"
     },
-    "console_dev_note": "Ja jūs zināt, ko jūs darāt, Element ir atvērtā koda, noteikti apskatiet mūsu GitHub (https://github.com/vector-im/element-web/) un piedalieties!",
+    "console_dev_note": "Ja jūs zināt, ko jūs darāt, Syndicate ir atvērtā koda, noteikti apskatiet mūsu GitHub (https://github.com/dakotasnapshot/syn-messenger-desktop/) un piedalieties!",
     "console_scam_warning": "Ja kāds jums lika šeit kaut ko kopēt/ielīmēt, pastāv liela iespēja, ka jūs tiksiet apkrāpts!",
     "console_wait": "Pagaidiet!",
     "create_room": {
@@ -1186,7 +1186,7 @@
         "custom_themes": "Atbalstīt pielāgotu motīvu pievienošanu",
         "dynamic_room_predecessors": "Dinamiski istabas priekšteči",
         "dynamic_room_predecessors_description": "Iespējot MSC3946 (lai nodrošinātu vēlu ierašanās istabu arhīvu atbalstu)",
-        "element_call_video_rooms": "Element Call video istabas",
+        "element_call_video_rooms": "Syndicate Call video istabas",
         "experimental_description": "Vai jūtaties gatavs eksperimentiem? Izmēģiniet mūsu jaunākās idejas izstrādes stadijā. Šīs funkcijas nav pabeigtas un var būt nestabilas, var mainīties vai vispār var tikt atmestas. <a> Uzzināt vairāk</a> .",
         "experimental_section": "Agrīnie priekšskatījumi",
         "feature_wysiwyg_composer_description": "Ziņu sastādītājā Markdown vietā izmantot bagātinātu tekstu.",

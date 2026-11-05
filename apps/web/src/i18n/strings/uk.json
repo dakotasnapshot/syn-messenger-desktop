@@ -642,7 +642,7 @@
         "stop_voice_message": "Зупинити запис",
         "voice_message_button": "Голосове повідомлення"
     },
-    "console_dev_note": "Якщо ви знаєте, що ви робите, Element — це відкрите програмне забезпечення, обов'язково перегляньте наш GitHub (https://github.com/vector-im/element-web/) та зробіть внесок!",
+    "console_dev_note": "Якщо ви знаєте, що ви робите, Syndicate — це відкрите програмне забезпечення, обов'язково перегляньте наш GitHub (https://github.com/dakotasnapshot/syn-messenger-desktop/) та зробіть внесок!",
     "console_scam_warning": "Якщо хтось сказав вам скопіювати/вставити щось сюди, є велика ймовірність, що вас обманюють!",
     "console_wait": "Заждіть!",
     "create_room": {
@@ -872,7 +872,7 @@
         "setting_definition": "Означення налаштування:",
         "setting_id": "ID налаштувань",
         "settings": {
-            "elementCallUrl": "URL Element Call"
+            "elementCallUrl": "URL Syndicate Call"
         },
         "settings_explorer": "Налаштування оглядача",
         "show_empty_content_events": "Показати події з порожнім вмістом",
@@ -1105,11 +1105,11 @@
         "hs_blocked": "Цей домашній сервер заблокований адміністратором.",
         "invalid_configuration_mixed_server": "Неправильна конфігурація: не можна вказати default_hs_url разом з default_server_name або default_server_config",
         "invalid_configuration_no_server": "Неправильна конфігурація: не вказано усталений сервер.",
-        "invalid_json": "Ваша конфігурація Element містить хибний JSON. Виправте проблему та оновіть сторінку.",
+        "invalid_json": "Ваша конфігурація Syndicate містить хибний JSON. Виправте проблему та оновіть сторінку.",
         "invalid_json_detail": "Повідомлення від аналізатора : %(message)s",
         "invalid_json_generic": "Хибний JSON",
         "mau": "Цей домашній сервер досягнув свого ліміту щомісячних активних користувачів.",
-        "misconfigured": "Ваш Element налаштовано неправильно",
+        "misconfigured": "Ваш Syndicate налаштовано неправильно",
         "mixed_content": "З'єднуватися з домашнім сервером через HTTP, коли в рядку адреси браузера введено HTTPS-адресу, не можна. Використовуйте HTTPS або <a>дозвольте небезпечні скрипти</a>.",
         "non_urgent_echo_failure_toast": "Ваш сервер не відповідає на деякі <a>запити</a>.",
         "resource_limits": "Цей домашній сервер досягнув одного зі своїх лімітів ресурсів.",
@@ -1501,7 +1501,7 @@
         "custom_themes": "Підтримка користувацьких тем",
         "dynamic_room_predecessors": "Попередники динамічної кімнати",
         "dynamic_room_predecessors_description": "Увімкнути MSC3946 (для підтримки архівів пізніх кімнат)",
-        "element_call_video_rooms": "Відео кімнати Element Call",
+        "element_call_video_rooms": "Відео кімнати Syndicate Call",
         "encrypted_state_events": "Події зашифрованого стану (MSC4362)",
         "encrypted_state_events_description": "Вмикає експериментальну підтримку шифрування подій стану, що приховує від сервера метадані, такі як назви кімнат та теми. Ці метадані також будуть приховані від користувачів, які приєднаються до кімнат пізніше, та від тих, чиї клієнти не підтримують MSC4362.",
         "exclude_insecure_devices": "Виключати незахищені пристрої під час надсилання/отримання повідомлень",
@@ -1509,7 +1509,7 @@
         "experimental_description": "Відчуваєте себе експериментатором? Спробуйте наші новітні задуми в розробці. Ці функції не остаточні; вони можуть бути нестабільними, можуть змінюватися або взагалі можуть бути відкинуті. <a>Докладніше</a>.",
         "experimental_section": "Ранній огляд",
         "extended_profiles_msc_support": "Вимагає, щоб ваш сервер підтримував MSC4133",
-        "feature_disable_call_per_sender_encryption": "Вимкнути шифрування для кожного відправника для Element Call",
+        "feature_disable_call_per_sender_encryption": "Вимкнути шифрування для кожного відправника для Syndicate Call",
         "feature_retention": {
             "description": "Автоматично вилучати повідомлення з кімнати, коли вони досягають налаштованого періоду зберігання. Наразі підтримуються лише налаштування читання."
         },
@@ -2992,7 +2992,7 @@
             "auto_gain_control": "Авторегулювання підсилення",
             "dialog_title": "<strong>Налаштування:</strong> Голос і відео",
             "echo_cancellation": "Пригнічення відлуння",
-            "echo_cancellation_description": "Прибирає відлуння з мікрофонного вводу під час викликів. Це налаштування також застосовується до Element Call.",
+            "echo_cancellation_description": "Прибирає відлуння з мікрофонного вводу під час викликів. Це налаштування також застосовується до Syndicate Call.",
             "enable_fallback_ice_server": "Дозволити резервний сервер підтримки викликів (%(server)s)",
             "enable_fallback_ice_server_description": "Застосовується лише в тому випадку, якщо ваш домашній сервер не пропонує його. Ваша IP-адреса передаватиметься під час виклику.",
             "enable_legacy_calls": "Увімкнути застарілі голосові/відеовиклики",
@@ -3000,7 +3000,7 @@
             "mirror_local_feed": "Показувати локальне відео віддзеркалено",
             "missing_permissions_prompt": "Щоб брати участь у викликах, надайте %(brand)s дозвіл на доступ до вашого аудіо- та відеопристрою.",
             "noise_suppression": "Шумопригнічення",
-            "noise_suppression_description": "Знижує фоновий шум на вводі мікрофона під час викликів. Це налаштування також застосовується до Element Call.",
+            "noise_suppression_description": "Знижує фоновий шум на вводі мікрофона під час викликів. Це налаштування також застосовується до Syndicate Call.",
             "permissions": "Дозволити доступ до мікрофона та камери",
             "request_permissions": "Запит",
             "title": "Голос і відео",
@@ -3881,7 +3881,7 @@
         "disabled_no_perms_start_video_call": "У вас немає дозволу розпочинати відеовиклики",
         "disabled_no_perms_start_voice_call": "У вас немає дозволу розпочинати голосові виклики",
         "disabled_ongoing_call": "Поточний виклик",
-        "element_call": "Element Call",
+        "element_call": "Syndicate Call",
         "enable_camera": "Увімкнути камеру",
         "enable_microphone": "Увімкнути мікрофон",
         "expand": "Повернутися до виклику",

@@ -16,10 +16,10 @@ vi.mock("../getconfig.ts", () => ({
 }));
 vi.mock("./mobile-apps.ts");
 
-describe("onBackToElementClick", () => {
+describe("onBackToSyndicateClick", () => {
     beforeAll(async () => {
         const backButton = document.createElement("a");
-        backButton.id = "back_to_element_button";
+        backButton.id = "back_to_syndicate_button";
         backButton.textContent = "Back";
         document.body.append(backButton);
 
@@ -37,7 +37,7 @@ describe("onBackToElementClick", () => {
 
     it("should set skip_mobile_redirect in sessionStorage", async () => {
         expect(sessionStorage.getItem("skip_mobile_redirect")).toBeFalsy();
-        const button = document.getElementById("back_to_element_button")!;
+        const button = document.getElementById("back_to_syndicate_button")!;
         await waitFor(() => expect(button.onclick).toBeTruthy());
         button.click();
         expect(sessionStorage.getItem("skip_mobile_redirect")).toBe("true");

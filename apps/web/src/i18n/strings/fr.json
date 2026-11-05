@@ -641,7 +641,7 @@
         "stop_voice_message": "Arrêter l’enregistrement",
         "voice_message_button": "Message vocal"
     },
-    "console_dev_note": "Si vous savez ce que vous faites, Element est un logiciel libre, n'hésitez pas à consulter notre GitHub (https://github.com/vector-im/element-web/) et à contribuer !",
+    "console_dev_note": "Si vous savez ce que vous faites, Syndicate est un logiciel libre, n'hésitez pas à consulter notre GitHub (https://github.com/dakotasnapshot/syn-messenger-desktop/) et à contribuer !",
     "console_scam_warning": "Si quelqu'un vous a dit de copier/coller quelque chose ici, il y a de fortes chances que vous soyez victime d'une escroquerie !",
     "console_wait": "Attendez !",
     "create_room": {
@@ -870,7 +870,7 @@
         "setting_definition": "Définition du paramètre :",
         "setting_id": "Identifiant de paramètre",
         "settings": {
-            "elementCallUrl": "Lien d'Element Call"
+            "elementCallUrl": "Lien d'Syndicate Call"
         },
         "settings_explorer": "Explorateur de paramètres",
         "show_empty_content_events": "Afficher les événements sans contenu",
@@ -1104,11 +1104,11 @@
         "hs_blocked": "Ce serveur d’accueil a été bloqué par son administrateur.",
         "invalid_configuration_mixed_server": "Configuration invalide : default_hs_url ne peut pas être défini en même temps que default_server_name ou default_server_config",
         "invalid_configuration_no_server": "Configuration invalide : aucun serveur par défaut indiqué.",
-        "invalid_json": "La configuration de votre Element contient du JSON invalide. Veuillez corriger le problème et recharger la page.",
+        "invalid_json": "La configuration de votre Syndicate contient du JSON invalide. Veuillez corriger le problème et recharger la page.",
         "invalid_json_detail": "Le message de l’analyseur est : %(message)s",
         "invalid_json_generic": "JSON non valide",
         "mau": "Ce serveur d’accueil a atteint sa limite mensuelle d'utilisateurs actifs.",
-        "misconfigured": "Votre Element est mal configuré",
+        "misconfigured": "Votre Syndicate est mal configuré",
         "mixed_content": "Impossible de se connecter au serveur d'accueil en HTTP si l’URL dans la barre de votre explorateur est en HTTPS. Utilisez HTTPS ou <a>activez la prise en charge des scripts non-vérifiés</a>.",
         "non_urgent_echo_failure_toast": "Votre serveur ne répond pas à certaines <a>requêtes</a>.",
         "resource_limits": "Ce serveur d’accueil a dépassé une de ses limites de ressources.",
@@ -1498,7 +1498,7 @@
         "custom_themes": "Autoriser l’ajout de thèmes personnalisés",
         "dynamic_room_predecessors": "Prédécesseurs de salon dynamique",
         "dynamic_room_predecessors_description": "Active MSC3946 (pour prendre en charge les archives de salon après création)",
-        "element_call_video_rooms": "Salons vidéo Element Call",
+        "element_call_video_rooms": "Salons vidéo Syndicate Call",
         "encrypted_state_events": "Événements d'état chiffrés (MSC4362)",
         "encrypted_state_events_description": "Active la prise en charge expérimentale du chiffrement des événements d'état, masquant ainsi les métadonnées telles que les noms des salons et les sujets de discussion auprès du serveur. Ces métadonnées seront également masquées pour les personnes rejoignant les salons ultérieurement, ainsi que pour les applications ne prennant pas en charge MSC4362.",
         "exclude_insecure_devices": "Exclure les appareils non sécurisés lors de l'envoi/de la réception de messages",
@@ -1506,7 +1506,7 @@
         "experimental_description": "Envie d’expériences ? Essayez nos dernières idées en développement. Ces fonctionnalités ne sont pas terminées ; elles peuvent changer, être instables, ou être complètement abandonnées. <a>En savoir plus</a>.",
         "experimental_section": "Avant-premières",
         "extended_profiles_msc_support": "Nécessite que votre serveur prenne en charge MSC4133",
-        "feature_disable_call_per_sender_encryption": "Désactiver le chiffrement de chaque expéditeur pour Element Call",
+        "feature_disable_call_per_sender_encryption": "Désactiver le chiffrement de chaque expéditeur pour Syndicate Call",
         "feature_retention": {
             "description": "Suppression automatique des messages d'un salon lorsq'ils atteignent la période de conservation configurée. Actuellement, seules les options de lecture sont prises en charge.",
             "disabled_sliding_sync": "La conservation des données ne peut pas être activée lorsque Sliding sync est activé.",
@@ -2978,7 +2978,7 @@
             "auto_gain_control": "Contrôle automatique du gain",
             "dialog_title": "<strong>Paramètres : </strong> Audio et vidéo",
             "echo_cancellation": "Annulation d’écho",
-            "echo_cancellation_description": "Supprime l'écho de votre microphone pendant les appels. Ce paramètre s'applique également à Element Call.",
+            "echo_cancellation_description": "Supprime l'écho de votre microphone pendant les appels. Ce paramètre s'applique également à Syndicate Call.",
             "enable_fallback_ice_server": "Autoriser le serveur de secours d’assistance d’appel (%(server)s)",
             "enable_fallback_ice_server_description": "Concerne seulement les serveurs d’accueil qui n’en proposent pas. Votre adresse IP pourrait être diffusée pendant un appel.",
             "enable_legacy_calls": "Activer les appels voix/vidéo ancienne génération",
@@ -2986,7 +2986,7 @@
             "mirror_local_feed": "Inverser horizontalement la vidéo locale (effet miroir)",
             "missing_permissions_prompt": "Pour participer aux appels, autorisez %(brand)s à accéder à votre périphérique audio et vidéo.",
             "noise_suppression": "Suppression du bruit",
-            "noise_suppression_description": "Réduit le bruit de fond dans votre microphone pendant les appels. Ce paramètre s'applique également à Element Call.",
+            "noise_suppression_description": "Réduit le bruit de fond dans votre microphone pendant les appels. Ce paramètre s'applique également à Syndicate Call.",
             "permissions": "Autoriser l'accès au microphone et à la caméra",
             "request_permissions": "Demande",
             "title": "Audio et vidéo",
@@ -3853,7 +3853,7 @@
         "disabled_no_perms_start_video_call": "Vous n’avez pas la permission de démarrer un appel vidéo",
         "disabled_no_perms_start_voice_call": "Vous n’avez pas la permission de démarrer un appel audio",
         "disabled_ongoing_call": "Appel en cours",
-        "element_call": "Element Call",
+        "element_call": "Syndicate Call",
         "enable_camera": "Activer la caméra",
         "enable_microphone": "Activer le microphone",
         "expand": "Revenir à l’appel",
@@ -3927,7 +3927,7 @@
     "web_default_device_name": "%(appName)s : %(browserName)s pour %(osName)s",
     "welcome": {
         "tagline_element": "Conçu pour la vitesse et la simplicité.",
-        "title_element": "Soyez dans votre Element",
+        "title_element": "Soyez dans votre Syndicate",
         "title_generic": "Bienvenue sur %(brand)s"
     },
     "widget": {

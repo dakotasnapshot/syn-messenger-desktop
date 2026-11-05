@@ -6,8 +6,8 @@ exports[`<AuthHeaderLogo /> > should match snapshot 1`] = `
     class="mx_AuthHeaderLogo"
   >
     <img
-      alt="Element"
-      src="themes/element/img/logos/element-logo.svg"
+      alt="Syndicate"
+      src="img/syndicate-logo.svg"
     />
   </aside>
 </DocumentFragment>

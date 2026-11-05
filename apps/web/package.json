@@ -1,7 +1,7 @@
 {
     "name": "element-web",
     "version": "1.12.27",
-    "description": "Element: the future of secure communication",
+    "description": "Syndicate: private, federated Matrix messaging",
     "author": "New Vector Ltd.",
     "repository": {
         "type": "git",

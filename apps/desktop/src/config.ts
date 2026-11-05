@@ -32,9 +32,9 @@ function loadLocalConfigFile(location: string | undefined): JsonDocument {
 }
 
 const DEFAULTS = {
-    brand: "Element",
-    help_url: "https://element.io/help",
-    web_base_url: "https://app.element.io/",
+    brand: "Syndicate",
+    help_url: "https://synmessenger.com/support.html",
+    web_base_url: "https://synmessenger.com/chat/",
 } satisfies DesktopConfigJson;
 
 function applyDefaults(conf: DesktopConfigJson): asserts conf is ConfigOptions {

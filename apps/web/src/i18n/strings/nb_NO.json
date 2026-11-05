@@ -625,7 +625,7 @@
         "stop_voice_message": "Stopp opptaket",
         "voice_message_button": "Talemelding"
     },
-    "console_dev_note": "Hvis du vet hva du driver med, Element er åpen kildekode, så sjekk ut GitHub (https://github.com/vector-im/element-web/) og bidra!",
+    "console_dev_note": "Hvis du vet hva du driver med, Syndicate er åpen kildekode, så sjekk ut GitHub (https://github.com/dakotasnapshot/syn-messenger-desktop/) og bidra!",
     "console_scam_warning": "Hvis noen ba deg om å kopiere/lime inn noe her, er det stor sannsynlighet for at du blir svindlet!",
     "console_wait": "Vent!",
     "create_room": {
@@ -839,7 +839,7 @@
         "setting_definition": "Innstillingsdefinisjon:",
         "setting_id": "Innstillings-ID",
         "settings": {
-            "elementCallUrl": "Element Call URL"
+            "elementCallUrl": "Syndicate Call URL"
         },
         "settings_explorer": "Utforsker for innstillinger",
         "show_empty_content_events": "Vis hendelser med tomt innhold",
@@ -1068,11 +1068,11 @@
         "hs_blocked": "Denne hjemmeserveren har blitt blokkert av dens administrator.",
         "invalid_configuration_mixed_server": "Ugyldig konfigurasjon: en default_hs_url kan ikke spesifiseres sammen med default_server_name eller default_server_config",
         "invalid_configuration_no_server": "Ugyldig konfigurasjon: Ingen standardserver angitt.",
-        "invalid_json": "Element-konfigurasjonen din inneholder ugyldig JSON. Rett opp problemet og last inn siden på nytt.",
+        "invalid_json": "Syndicate-konfigurasjonen din inneholder ugyldig JSON. Rett opp problemet og last inn siden på nytt.",
         "invalid_json_detail": "Meldingen fra parseren er: %(message)s",
         "invalid_json_generic": "Ugyldig JSON",
         "mau": "Denne hjemmeserveren har nådd grensen for månedlige aktive brukere.",
-        "misconfigured": "Din Element er feilkonfigurert",
+        "misconfigured": "Din Syndicate er feilkonfigurert",
         "mixed_content": "Kan ikke koble til hjemmeserveren via HTTP når en HTTPS-URL er i nettleserlinjen. Bruk enten HTTPS eller <a> aktiver usikre skript</a>.",
         "non_urgent_echo_failure_toast": "Serveren din svarer ikke på noen <a> forespørsler</a>.",
         "resource_limits": "Denne hjemmeserveren har overskredet en av ressursgrensene.",
@@ -1453,7 +1453,7 @@
         "custom_themes": "Støtte for å legge til tilpassede temaer",
         "dynamic_room_predecessors": "Dynamiske romforgjengere",
         "dynamic_room_predecessors_description": "Aktiver MSC3946 (for å støtte sent ankomne romarkiver)",
-        "element_call_video_rooms": "Element Call videorom",
+        "element_call_video_rooms": "Syndicate Call videorom",
         "encrypted_state_events": "Krypterte tilstandshendelser (MSC4362)",
         "encrypted_state_events_description": "Aktiverer eksperimentell støtte for kryptering av tilstands hendelser, som skjuler metadata som rom navn og temaer fra serveren. Disse metadataene vil også være skjult for personer som blir med i rom senere, og personer med klient er som ikke støtter MSC4362.",
         "exclude_insecure_devices": "Ekskluder usikre enheter når du sender/mottar meldinger",
@@ -1461,7 +1461,7 @@
         "experimental_description": "Er du litt vågal? Prøv ut de nyeste ideene våre under utvikling. Disse funksjonene er ikke ferdigutviklet; de kan være ustabile, endres eller droppes helt. <a>Finn ut mer</a>.",
         "experimental_section": "Tidlige forhåndsvisninger",
         "extended_profiles_msc_support": "Krever at serveren din støtter MSC4133",
-        "feature_disable_call_per_sender_encryption": "Deaktiver kryptering per avsender for Element Call",
+        "feature_disable_call_per_sender_encryption": "Deaktiver kryptering per avsender for Syndicate Call",
         "feature_wysiwyg_composer_description": "Bruk rik tekst i stedet for Markdown i meldingsskriveren.",
         "group_developer": "Utvikler",
         "group_encryption": "Kryptering",
@@ -3744,7 +3744,7 @@
         "disabled_no_perms_start_video_call": "Du har ikke tillatelse til å starte videosamtaler",
         "disabled_no_perms_start_voice_call": "Du har ikke tillatelse til å starte taleanrop",
         "disabled_ongoing_call": "Pågående samtale",
-        "element_call": "Element Call",
+        "element_call": "Syndicate Call",
         "enable_camera": "Start kameraet",
         "enable_microphone": "Opphev demping av mikrofonen",
         "expand": "Gå tilbake til samtalen",

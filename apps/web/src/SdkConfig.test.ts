@@ -35,9 +35,7 @@ describe("SdkConfig", () => {
         it("should allow overriding individual fields of sub-objects", () => {
             const feedback = SdkConfig.getObject("feedback");
             expect(feedback.get("existing_issues_url")).toMatchInlineSnapshot(`"https://existing"`);
-            expect(feedback.get("new_issue_url")).toMatchInlineSnapshot(
-                `"https://github.com/vector-im/element-web/issues/new/choose"`,
-            );
+            expect(feedback.get("new_issue_url")).toMatchInlineSnapshot(`"https://synmessenger.com/support.html"`);
         });
     });
 });

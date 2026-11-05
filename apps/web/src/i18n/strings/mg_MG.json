@@ -566,7 +566,7 @@
         "stop_voice_message": "Atsaharo ny firaketana",
         "voice_message_button": "Hafatra feo"
     },
-    "console_dev_note": "Raha fantatrao ny ataonao dia loharano misokatra ny Element, aza hadino ny mijery ny GitHub (https://github.com/vector-im/element-web/) ary mandray anjara!",
+    "console_dev_note": "Raha fantatrao ny ataonao dia loharano misokatra ny Syndicate, aza hadino ny mijery ny GitHub (https://github.com/dakotasnapshot/syn-messenger-desktop/) ary mandray anjara!",
     "console_scam_warning": "Raha misy miteny aminao hoe mandika/mametaka zavatra eto dia mety ho voafitaka ianao!",
     "console_wait": "Andraso!",
     "create_room": {
@@ -1215,7 +1215,7 @@
         "element_call_video_rooms": "Efitrano fandraisan'orinan-tsary",
         "experimental_description": "Mahatsiaro andrana? Andramo ny hevitray farany amin'ny fampandrosoana. Tsy vita ireo endri-javatra ireo; mety hikorontana izy ireo, mety hiova, na mety ho latsaka tanteraka.<a> Hamantatra bebe kokoa</a> .",
         "experimental_section": "Fijery mialoha",
-        "feature_disable_call_per_sender_encryption": "Atsaharo ny encryption isaky ny mpandefa hoany Element Call",
+        "feature_disable_call_per_sender_encryption": "Atsaharo ny encryption isaky ny mpandefa hoany Syndicate Call",
         "feature_wysiwyg_composer_description": "Mampiasà lahatsoratra manankarena fa tsy Markdown ao amin'ny mpamoron-dahatsoratra.",
         "group_developer": "Fampandrosoana",
         "group_encryption": "Fanafenana",
@@ -1360,7 +1360,7 @@
     },
     "member_list_back_action_label": "Mpikambana ao amin'ny efitrano",
     "message_edit_dialog_title": "Fanovana hafatra",
-    "migrating_crypto": "Mihantona mafy. Manavao ny Element izahay mba hahatonga ny fanafenana haingana kokoa sy azo antoka kokoa.",
+    "migrating_crypto": "Mihantona mafy. Manavao ny Syndicate izahay mba hahatonga ny fanafenana haingana kokoa sy azo antoka kokoa.",
     "mobile_guide": {
         "toast_accept": "Mampiasà fampiarana",
         "toast_description": "%(brand)sandrana amin'ny mpitety tranonkala finday. Raha te hanana traikefa tsara kokoa sy ny endri-javatra farany indrindra, ampiasao ny fampiharana teratany maimaim-poana.",

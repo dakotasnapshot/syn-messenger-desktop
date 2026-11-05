@@ -831,7 +831,7 @@ export class ElementCall extends Call {
             {
                 id: secureRandomString(24), // So that it's globally unique
                 creatorUserId: client.getUserId()!,
-                name: "Element Call",
+                name: "Syndicate Call",
                 type: WidgetType.CALL.preferred,
                 url: url.toString(),
                 waitForIframeLoad: false,

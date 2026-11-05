@@ -486,7 +486,7 @@
         "stop_voice_message": "ຢຸດການບັນທຶກ",
         "voice_message_button": "ຂໍ້ຄວາມສຽງ"
     },
-    "console_dev_note": "ຖ້າທ່ານຮູ້ວ່າທ່ານກໍາລັງເຮັດຫຍັງ, Element ແມ່ນແຫຼ່ງເປີດ, ກວດເບິ່ງໃຫ້ແນ່ໃຈວ່າ GitHub ຂອງພວກເຮົາ (https://github.com/vector-im/element-web/) ແລະ ປະກອບສ່ວນ!",
+    "console_dev_note": "ຖ້າທ່ານຮູ້ວ່າທ່ານກໍາລັງເຮັດຫຍັງ, Syndicate ແມ່ນແຫຼ່ງເປີດ, ກວດເບິ່ງໃຫ້ແນ່ໃຈວ່າ GitHub ຂອງພວກເຮົາ (https://github.com/dakotasnapshot/syn-messenger-desktop/) ແລະ ປະກອບສ່ວນ!",
     "console_scam_warning": "ຖ້າມີຄົນບອກທ່ານໃຫ້ສຳເນົາ/ວາງບາງອັນຢູ່ບ່ອນນີ້, ມີໂອກາດສູງທີ່ທ່ານຈະຖືກຫລອກລວງ!",
     "console_wait": "ລໍຖ້າ!",
     "create_room": {
@@ -732,11 +732,11 @@
         "failed_copy": "ສຳເນົາບໍ່ສຳເລັດ",
         "hs_blocked": "homeserver ນີ້ຖືກບລັອກໂດຍຜູູ້ຄຸ້ມຄອງລະບົບ.",
         "invalid_configuration_no_server": "ການຕັ້ງຄ່າບໍ່ຖືກຕ້ອງ: ບໍ່ໄດ້ລະບຸເຊີບເວີເລີ່ມຕົ້ນ.",
-        "invalid_json": "ການຕັ້ງຄ່າແອັບ Element ຂອງທ່ານມີຄ່າ JSON ທີ່ບໍ່ຖືກຕ້ອງ. ກະລຸນາແກ້ໄຂບັນຫາ ແລະໂຫຼດໜ້ານີ້ຄືນໃໝ່.",
+        "invalid_json": "ການຕັ້ງຄ່າແອັບ Syndicate ຂອງທ່ານມີຄ່າ JSON ທີ່ບໍ່ຖືກຕ້ອງ. ກະລຸນາແກ້ໄຂບັນຫາ ແລະໂຫຼດໜ້ານີ້ຄືນໃໝ່.",
         "invalid_json_detail": "ຂໍ້ຄວາມຈາກຕົວປ່ຽນແມ່ນ: %(message)s",
         "invalid_json_generic": "JSON ບໍ່ຖືກຕ້ອງ",
         "mau": "homeserver ນີ້ຮອດຂີດຈຳກັດຂອງຜູ້ໃຊ້ປະຈຳເດືອນແລ້ວ.",
-        "misconfigured": "ການຕັ້ງຄ່າແອັບ Element ຂອງທ່ານບໍ່ຖືກຕ້ອງ",
+        "misconfigured": "ການຕັ້ງຄ່າແອັບ Syndicate ຂອງທ່ານບໍ່ຖືກຕ້ອງ",
         "mixed_content": "ບໍ່ສາມາດເຊື່ອມຕໍ່ກັບ homeserver ຜ່ານ HTTP ເມື່ອ HTTPS URL ຢູ່ໃນບຣາວເຊີຂອງທ່ານ. ໃຊ້ HTTPS ຫຼື <a>ເປີດໃຊ້ສະຄຣິບທີ່ບໍ່ປອດໄພ</a>.",
         "non_urgent_echo_failure_toast": "ເຊີບເວີຂອງທ່ານບໍ່ຕອບສະໜອງບາງ <a>ຄຳຮ້ອງຂໍ</a>.",
         "resource_limits": "homeserverນີ້ໃຊ້ຊັບພະຍາກອນເກີນຂີດຈຳກັດຢ່າງໃດຢ່າງໜຶ່ງ.",
