@@ -4,7 +4,7 @@ on:
     workflow_dispatch:
         inputs:
             windows_run_id:
-                description: Optional successful Windows artifact run to test an upgrade from ${{ inputs.previous_version }}
+                description: Optional successful Windows artifact run for the previous-install upgrade check
                 required: false
                 type: string
             candidate_version:
