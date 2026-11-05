@@ -104,7 +104,8 @@ jobs:
                   test "$(sha256sum acceptance/previous/syn-messenger_0.1.9_amd64.deb | cut -d' ' -f1)" = "4cfce0f050797b4905403026ac96ca56d4f111553458753434f5ff4f63dfeac6"
                   cp acceptance/previous/syn-messenger_0.1.9_amd64.deb acceptance/previous.deb
                   sudo dpkg --install acceptance/previous.deb
-                  previous=$(dpkg -L syn-messenger | sed -n '\|/syn-messenger$|p' | head -1)
+                  previous=$(dpkg -L syn-messenger | sed -n '\|^/opt/.*/syn-messenger$|p' | head -1)
+                  test -x "$previous"
                   candidate=$(realpath apps/desktop/dist/*.deb)
                   timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs deb "$candidate" "$previous" "$PWD/acceptance/deb" 2>&1 | tee acceptance/deb-harness.log
                   test "$(dpkg-query -W -f='${Version}' syn-messenger)" = "0.1.10"
