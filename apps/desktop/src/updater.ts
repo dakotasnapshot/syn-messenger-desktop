@@ -14,10 +14,13 @@ import { _t } from "./language-helper.js";
 import { initialisePromise } from "./ipc.js";
 import { getConfig } from "./config.js";
 
+import { startManagedUpdates, managedUpdatesActive, checkManagedUpdates, installManagedUpdate } from "./managed-updater.js";
+
 const UPDATE_POLL_INTERVAL_MS = 60 * 60 * 1000;
 const INITIAL_UPDATE_DELAY_MS = 30 * 1000;
 
 function installUpdate(): void {
+    if (managedUpdatesActive()) { void installManagedUpdate(); return; }
     // for some reason, quitAndInstall does not fire the
     // before-quit event, so we need to set the flag here.
     global.appQuitting = true;
@@ -55,6 +58,7 @@ async function safeCheckForUpdate(): Promise<void> {
 }
 
 async function pollForUpdates(): Promise<void> {
+    if (managedUpdatesActive()) { await checkManagedUpdates(); return; }
     try {
         // If we've already got a new update downloaded, then stop trying to check for new ones, as according to the doc
         // at https://github.com/electron/electron/blob/main/docs/api/auto-updater.md#autoupdatercheckforupdates
@@ -73,6 +77,11 @@ async function pollForUpdates(): Promise<void> {
 }
 
 export async function start(updateBaseUrl: string): Promise<void> {
+    if (process.platform === "linux") { await startManagedUpdates(); return; }
+    if (process.platform === "win32") {
+        try { await fs.access(getSquirrelExecutable()); }
+        catch { await startManagedUpdates(); return; }
+    }
     if (!(await available())) return;
     console.log(`Starting auto update with base URL: ${updateBaseUrl}`);
     if (!updateBaseUrl.endsWith("/")) {

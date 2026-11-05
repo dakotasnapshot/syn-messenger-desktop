@@ -6,7 +6,7 @@ on:
             version:
                 description: Release version without a leading v
                 required: true
-                default: 0.1.9
+                default: 0.1.10
     push:
         branches:
             - syn/main
@@ -36,7 +36,7 @@ jobs:
                   } elseif ("${{ github.ref_type }}" -eq "tag") {
                     $version = "${{ github.ref_name }}" -replace '^syn-v', ''
                   } else {
-                    $version = "0.1.9"
+                    $version = "0.1.10"
                   }
                   if ($version -notmatch '^\d+\.\d+\.\d+$') {
                     throw "Invalid release version: $version"
@@ -63,7 +63,7 @@ jobs:
               run: pnpm --filter element-web build
 
             - name: Test Syndicate GIF integration
-              run: pnpm exec vitest run apps/web/src/utils/GiphyClient.test.ts
+              run: pnpm exec vitest run apps/web/src/utils/GiphyClient.test.ts apps/desktop/src/managed-update-manifest.test.ts apps/desktop/src/managed-updater.test.ts
 
             - name: Package and verify Syndicate renderer
               working-directory: apps/desktop
@@ -73,6 +73,35 @@ jobs:
 
             - name: Build Windows installers
               run: pnpm --filter element-desktop build:64
+
+            - name: Native MSI updater acceptance
+              shell: pwsh
+              run: |
+                  $ErrorActionPreference = "Stop"
+                  New-Item -ItemType Directory -Force acceptance | Out-Null
+                  Invoke-WebRequest "https://synmessenger.com/downloads/Syndicate-0.1.9-Windows-x64.msi" -OutFile acceptance/previous.msi
+                  $previous = (Resolve-Path acceptance/previous.msi).Path
+                  $p = Start-Process msiexec.exe -ArgumentList "/i `"$previous`" /qn /norestart" -Wait -PassThru
+                  if ($p.ExitCode -notin @(0,3010)) { throw "Previous MSI failed: $($p.ExitCode)" }
+                  $installed = @(Get-ChildItem "$env:ProgramFiles/Syndicate" -Filter Syndicate.exe -Recurse)
+                  if ($installed.Count -ne 1) { throw "Expected one MSI app executable" }
+                  $candidate = (Resolve-Path "apps/desktop/dist/Syndicate $env:VERSION.msi").Path
+                  $testRoot = "$pwd/acceptance/msi"
+                  pnpm --filter element-desktop exec electron scripts/test-managed-update.mjs msi "$candidate" "$($installed[0].FullName)" "$testRoot"
+                  if ($LASTEXITCODE -ne 0) { throw "MSI updater harness failed" }
+                  if (-not (Test-Path "$testRoot/updater-result.json")) { throw "Missing MSI updater receipt" }
+                  $renderer = Join-Path $installed[0].DirectoryName "resources/webapp.asar"
+                  if ((Get-FileHash $renderer).Hash -ne (Get-FileHash apps/desktop/webapp.asar).Hash) { throw "Installed MSI renderer mismatch" }
+                  "MSI updater 0.1.9 -> 0.1.10: PASS" | Set-Content acceptance/native-result.txt
+
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: syndicate-windows-updater-acceptance
+                  path: |
+                      acceptance/**/updater-result.json
+                      acceptance/native-result.txt
+                  if-no-files-found: warn
 
             - name: Collect unsigned installers
               shell: pwsh

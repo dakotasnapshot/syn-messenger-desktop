@@ -1,0 +1,62 @@
+/* Native disposable-runner acceptance only. No production accounts or stores. */
+import { app } from "electron";
+import fs from "node:fs/promises";
+import path from "node:path";
+import { generateKeyPairSync, createHash, sign } from "node:crypto";
+import { fileURLToPath, pathToFileURL } from "node:url";
+
+const [kind, installer, previousExecutable, testRoot] = process.argv.slice(2);
+if (!["msi", "deb", "tar.gz"].includes(kind) || !testRoot) throw new Error("Usage: kind installer previous-executable test-root");
+await app.whenReady();
+await fs.mkdir(testRoot, { recursive: true });
+const userData = path.join(testRoot, "profile"); await fs.mkdir(userData, { recursive: true });
+await fs.writeFile(path.join(userData, "synthetic-profile-marker"), "preserve-me");
+app.setPath("userData", userData);
+Object.defineProperty(app, "isPackaged", { value: true });
+app.getVersion = () => "0.1.9";
+Object.defineProperty(process, "execPath", { value: previousExecutable });
+app.relaunch = () => { /* Native installer verified externally, don't loop the harness. */ };
+
+// Test copy only: an ephemeral signing key authenticates the just-built candidate.
+// Production modules retain the pinned release key and fixed HTTPS origin.
+const sourceDir = fileURLToPath(new URL("../lib/", import.meta.url));
+const moduleDir = path.join(testRoot, "modules"); await fs.mkdir(moduleDir, { recursive: true });
+await fs.writeFile(path.join(testRoot, "package.json"), '{"type":"module"}');
+const keys = generateKeyPairSync("ed25519");
+const publicKey = keys.publicKey.export({ type: "spki", format: "pem" }).toString().trim();
+let manifestCode = await fs.readFile(path.join(sourceDir, "managed-update-manifest.js"), "utf8");
+manifestCode = manifestCode.replace(/-----BEGIN PUBLIC KEY-----[\s\S]*?-----END PUBLIC KEY-----/, publicKey);
+await fs.writeFile(path.join(moduleDir, "managed-update-manifest.js"), manifestCode);
+let updaterCode = await fs.readFile(path.join(sourceDir, "managed-updater.js"), "utf8");
+// Headless CI has no Polkit agent; exercise the same dpkg argv through sudo.
+// Interactive Polkit/UAC UI acceptance remains a separately reported limitation.
+if (kind === "deb") updaterCode = updaterCode.replaceAll('"/usr/bin/pkexec"', '"/usr/bin/sudo"');
+await fs.writeFile(path.join(moduleDir, "managed-updater.js"), updaterCode);
+// ESM resolves Electron from the parent desktop node_modules, not a temp directory.
+await fs.symlink(path.resolve(sourceDir, "../node_modules"), path.join(testRoot, "node_modules"), process.platform === "win32" ? "junction" : "dir");
+const bytes = await fs.readFile(installer);
+const release = { version: "0.1.10", platform: process.platform, arch: process.arch, kind,
+    url: `https://synmessenger.com/downloads/acceptance.${kind}`, size: bytes.length,
+    sha256: createHash("sha256").update(bytes).digest("hex"), releaseNotes: "Synthetic native upgrade acceptance", releaseDate: new Date().toISOString() };
+const payload = Buffer.from(JSON.stringify(release));
+const envelope = JSON.stringify({ payload: payload.toString("base64"), signature: sign(null, payload, keys.privateKey).toString("base64") });
+global.fetch = async url => new Response(String(url).endsWith(".json") ? envelope : bytes);
+let downloaded = false;
+const updater = await import(pathToFileURL(path.join(moduleDir, "managed-updater.js")).href);
+global.mainWindow = { webContents: { send(event, value) {
+    if (event === "check_updates" && typeof value === "string") throw new Error(value);
+    if (event === "update-downloaded") downloaded = true;
+} } };
+const quit = app.quit.bind(app);
+app.quit = () => {
+    fs.readFile(path.join(userData, "synthetic-profile-marker"), "utf8").then(async value => {
+        if (value !== "preserve-me") throw new Error("Profile marker changed");
+        await fs.writeFile(path.join(testRoot, "updater-result.json"), JSON.stringify({ kind, downloaded, version: release.version, verifiedInstallerSHA256: release.sha256, profilePreserved: true, installerRequested: true }, null, 2));
+        quit();
+    }).catch(error => { console.error(error); app.exit(1); });
+};
+await updater.startManagedUpdates();
+await updater.checkManagedUpdates();
+if (!downloaded) throw new Error("No downloaded update was announced");
+await updater.installManagedUpdate();
+setTimeout(() => { console.error("Installer did not finish"); app.exit(1); }, 30000).unref();

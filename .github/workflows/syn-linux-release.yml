@@ -6,7 +6,7 @@ on:
             version:
                 description: Release version without a leading v
                 required: true
-                default: 0.1.9
+                default: 0.1.10
     push:
         branches:
             - syn/main
@@ -19,7 +19,7 @@ jobs:
         runs-on: ubuntu-24.04
         env:
             VARIANT_PATH: syn/release/build.json
-            VERSION: ${{ inputs.version || '0.1.9' }}
+            VERSION: ${{ inputs.version || '0.1.10' }}
         steps:
             - uses: actions/checkout@v4
 
@@ -33,7 +33,7 @@ jobs:
                   cache: pnpm
 
             - name: Install Linux build dependencies
-              run: sudo apt-get update && sudo apt-get install -y libsqlcipher-dev
+              run: sudo apt-get update && sudo apt-get install -y libsqlcipher-dev xvfb libgtk-3-0 libnss3 libasound2t64 libgbm1 libnotify4 libxss1 libxtst6 libsecret-1-0
 
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
@@ -46,7 +46,7 @@ jobs:
               run: pnpm --filter element-web build
 
             - name: Test Syndicate GIF and profile integration
-              run: pnpm exec vitest run apps/web/src/utils/GiphyClient.test.ts apps/desktop/src/args.test.ts apps/desktop/src/config.test.ts
+              run: pnpm exec vitest run apps/web/src/utils/GiphyClient.test.ts apps/desktop/src/args.test.ts apps/desktop/src/config.test.ts apps/desktop/src/managed-update-manifest.test.ts apps/desktop/src/managed-updater.test.ts
 
             - name: Package and verify Syndicate renderer
               working-directory: apps/desktop
@@ -61,6 +61,42 @@ jobs:
             - name: Build Linux packages
               working-directory: apps/desktop
               run: pnpm run build --x64 --publish never -l deb tar.gz
+
+            - name: Native Debian and portable updater acceptance
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  mkdir -p acceptance
+                  curl -fL --retry 3 https://synmessenger.com/downloads/Syndicate-0.1.9-Linux-x86_64.deb -o acceptance/previous.deb
+                  sudo dpkg --install acceptance/previous.deb
+                  previous=$(dpkg -L syn-messenger | sed -n '\|/syn-messenger$|p' | head -1)
+                  candidate=$(realpath apps/desktop/dist/*.deb)
+                  xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs deb "$candidate" "$previous" "$PWD/acceptance/deb"
+                  test "$(dpkg-query -W -f='${Version}' syn-messenger)" = "0.1.10"
+                  sha256sum "$(dirname "$previous")/resources/webapp.asar" apps/desktop/webapp.asar | awk '{print $1}' | uniq | wc -l | xargs test 1 -eq
+                  curl -fL --retry 3 https://synmessenger.com/downloads/Syndicate-0.1.9-Linux-x86_64.tar.gz -o acceptance/previous.tar.gz
+                  tar -xzf acceptance/previous.tar.gz -C acceptance
+                  portable="$PWD/acceptance/syn-messenger-0.1.9"
+                  archive=$(realpath apps/desktop/dist/*.tar.gz)
+                  xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs tar.gz "$archive" "$portable/syn-messenger" "$PWD/acceptance/portable"
+                  expected=$(sha256sum apps/desktop/webapp.asar | cut -d' ' -f1)
+                  for i in $(seq 1 30); do
+                    actual=$(sha256sum "$portable/resources/webapp.asar" | cut -d' ' -f1)
+                    [ "$actual" != "$expected" ] || break
+                    sleep 1
+                  done
+                  test "$actual" = "$expected"
+                  test -f "$portable.previous/resources/app.asar"
+                  echo "Native DEB and tar 0.1.9 -> 0.1.10 updater installs verified" > acceptance/native-result.txt
+
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: syndicate-linux-updater-acceptance
+                  path: |
+                      acceptance/**/updater-result.json
+                      acceptance/native-result.txt
+                  if-no-files-found: warn
 
             - uses: actions/upload-artifact@v4
               with:
