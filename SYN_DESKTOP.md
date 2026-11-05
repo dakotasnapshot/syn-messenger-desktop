@@ -24,7 +24,7 @@ Watch transport, iOS notification-service rendering, Apple communication notific
 - Include the GIPHY picker from the macOS 0.1.8 release in Android, Linux, Windows, and every current or future Syndicate client build.
 - Inject the production GIPHY API key through each platform's release configuration without committing the credential.
 - Verify search, trending GIFs, attribution, upload behavior, and encrypted-room delivery on every supported platform before publishing.
-- No immediate Android, Linux, or Windows build or release is planned for this item.
+- Windows/Linux 0.1.9 builds use the same customized renderer as macOS, with required release-key injection. Android remains a separate parity item.
 
 ### Automatic updates
 
@@ -49,7 +49,16 @@ From `apps/desktop`:
 
 ```sh
 pnpm install --frozen-lockfile --filter element-desktop
-pnpm run fetch --noverify --cfgdir syn/release v1.12.27
+pnpm --filter element-web build
+VERSION=0.1.9 GIPHY_API_KEY=<deployment-key> node scripts/package-syndicate-web.ts
 cp syn/release/build.json variant.json
 VARIANT_PATH=syn/release/build.json pnpm run build
 ```
+
+## Windows/Linux 0.1.9 parity release
+
+Build customized renderer from this checkout, never upstream prebuilt Element. Package script requires deployment key, records source commit, verifies packed configuration. Actions inject repository GIPHY_API_KEY secret; no credential in source.
+
+Parity: GIF search/trending/attribution through Matrix media upload (including encrypted rooms), URL/image previews, unread notification badges, Syndicate identity and existing-profile preservation. Native encrypted-history search remains the separate roadmap above.
+
+Windows EXE/Squirrel installs poll `/desktop/update/win32/x64/RELEASES`; publish complete `.nupkg` before RELEASES. MSI installations do not use Squirrel automatic updates. Linux DEB/tar.gz do not support Electron auto-update; users install the new package. Do not claim automatic Linux delivery.

@@ -6,7 +6,7 @@ on:
             version:
                 description: Release version without a leading v
                 required: true
-                default: 0.1.5
+                default: 0.1.9
     push:
         branches:
             - syn/main
@@ -19,7 +19,7 @@ jobs:
         runs-on: ubuntu-24.04
         env:
             VARIANT_PATH: syn/release/build.json
-            VERSION: ${{ inputs.version || '0.1.5' }}
+            VERSION: ${{ inputs.version || '0.1.9' }}
         steps:
             - uses: actions/checkout@v4
 
@@ -38,13 +38,21 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
-            - name: Fetch web client
-              working-directory: apps/desktop
-              run: pnpm run fetch --noverify -d syn/release v1.12.27 || test -f webapp.asar
+            - name: Build customized Syndicate web client
+              env:
+                  NODE_OPTIONS: --max-old-space-size=6144
+                  NX_DAEMON: "false"
+                  NX_ISOLATE_PLUGINS: "false"
+              run: pnpm --filter element-web build
 
-            - name: Verify web client
+            - name: Test Syndicate GIF integration
+              run: pnpm exec vitest run apps/web/src/utils/GiphyClient.test.ts
+
+            - name: Package and verify Syndicate renderer
               working-directory: apps/desktop
-              run: test -f webapp.asar
+              env:
+                  GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
+              run: node scripts/package-syndicate-web.ts
 
             - name: Build native modules
               working-directory: apps/desktop
@@ -62,3 +70,13 @@ jobs:
                       apps/desktop/dist/*.tar.gz
                   if-no-files-found: error
                   retention-days: 14
+
+            - name: Upload renderer provenance
+              uses: actions/upload-artifact@v4
+              with:
+                  name: syndicate-renderer-linux-${{ env.VERSION }}
+                  path: |
+                      apps/desktop/webapp.asar
+                      apps/web/webapp/syndicate-release.json
+                  if-no-files-found: error
+                  retention-days: 30

@@ -1,5 +1,6 @@
 {
     "$schema": "../../node_modules/nx/schemas/project-schema.json",
+    "name": "element-desktop",
     "projectType": "application",
     "implicitDependencies": ["element-web"],
     "root": "apps/desktop",

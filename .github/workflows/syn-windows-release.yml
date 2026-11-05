@@ -6,7 +6,7 @@ on:
             version:
                 description: Release version without a leading v
                 required: true
-                default: 0.1.3
+                default: 0.1.9
     push:
         branches:
             - syn/main
@@ -36,32 +36,40 @@ jobs:
                   } elseif ("${{ github.ref_type }}" -eq "tag") {
                     $version = "${{ github.ref_name }}" -replace '^syn-v', ''
                   } else {
-                    $version = "0.1.5"
+                    $version = "0.1.9"
                   }
                   if ($version -notmatch '^\d+\.\d+\.\d+$') {
                     throw "Invalid release version: $version"
                   }
                   "VERSION=$version" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-            - name: Enable Corepack
-              run: corepack enable
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 11.22.0
+
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: apps/desktop/.node-version
+                  cache: pnpm
 
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
-            - name: Fetch Syndicate web client
+            - name: Build customized Syndicate web client
+              env:
+                  NODE_OPTIONS: --max-old-space-size=6144
+                  NX_DAEMON: "false"
+                  NX_ISOLATE_PLUGINS: "false"
+              run: pnpm --filter element-web build
+
+            - name: Test Syndicate GIF integration
+              run: pnpm exec vitest run apps/web/src/utils/GiphyClient.test.ts
+
+            - name: Package and verify Syndicate renderer
               working-directory: apps/desktop
-              shell: pwsh
-              run: |
-                  pnpm run fetch --noverify -d syn/release v1.12.27
-                  $fetchExit = $LASTEXITCODE
-                  if (-not (Test-Path webapp.asar)) {
-                    throw "Web client fetch failed before creating webapp.asar (exit $fetchExit)"
-                  }
-                  if ($fetchExit -ne 0) {
-                    Write-Host "Fetch created webapp.asar; ignoring its known post-fetch pnpm version failure."
-                  }
-                  exit 0
+              env:
+                  GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
+              run: node scripts/package-syndicate-web.ts
 
             - name: Build Windows installers
               run: pnpm --filter element-desktop build:64
@@ -72,6 +80,8 @@ jobs:
                   New-Item -ItemType Directory -Force windows-unsigned | Out-Null
                   Copy-Item "apps/desktop/dist/Syndicate $env:VERSION.msi" windows-unsigned/
                   Copy-Item "apps/desktop/dist/squirrel-windows/Syndicate Setup $env:VERSION.exe" windows-unsigned/
+                  Copy-Item "apps/desktop/dist/squirrel-windows/*-full.nupkg" windows-unsigned/
+                  Copy-Item "apps/desktop/dist/squirrel-windows/RELEASES" windows-unsigned/
 
             - name: Upload unsigned build for verification
               id: unsigned
@@ -105,5 +115,15 @@ jobs:
               with:
                   name: syn-messenger-windows-signed-${{ env.VERSION }}
                   path: windows-signed/
+                  if-no-files-found: error
+                  retention-days: 30
+
+            - name: Upload renderer provenance
+              uses: actions/upload-artifact@v4
+              with:
+                  name: syndicate-renderer-windows-${{ env.VERSION }}
+                  path: |
+                      apps/desktop/webapp.asar
+                      apps/web/webapp/syndicate-release.json
                   if-no-files-found: error
                   retention-days: 30
