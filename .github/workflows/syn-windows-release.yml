@@ -179,4 +179,3 @@ jobs:
                       acceptance/native-result.txt
                       acceptance/msi-harness.log
                   if-no-files-found: warn
-

@@ -134,4 +134,3 @@ jobs:
                       acceptance/native-result.txt
                       acceptance/*-harness.log
                   if-no-files-found: warn
-

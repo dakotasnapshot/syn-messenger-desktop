@@ -71,11 +71,21 @@ jobs:
                   path: candidate
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   run-id: ${{ inputs.windows_run_id }}
+            - name: Fetch exact previously published Windows installers
+              uses: actions/download-artifact@v4
+              with:
+                  name: syn-messenger-windows-unsigned-0.1.9
+                  path: previous-artifacts
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  run-id: 42017041651
             - name: Install published ${{ inputs.previous_version }} and apply candidate Squirrel update
               shell: pwsh
               run: |
                   $ErrorActionPreference = "Stop"
-                  Invoke-WebRequest "https://synmessenger.com/downloads/Syndicate-Setup-${{ inputs.previous_version }}-Windows-x64.exe" -OutFile previous.exe
+                  if ("${{ inputs.previous_version }}" -ne "0.1.9") { throw "Update the pinned prior-artifact receipt before changing the previous version" }
+                  $old = (Resolve-Path "previous-artifacts/Syndicate Setup 0.1.9.exe").Path
+                  if ((Get-FileHash $old).Hash.ToLower() -ne "56f472914b524570be3756e74491a92ad90081e3c0241ff6fe0b76fa03bd2a49") { throw "Published previous EXE hash mismatch" }
+                  Copy-Item $old previous.exe
                   $install = Start-Process -FilePath "$pwd/previous.exe" -ArgumentList "--silent" -PassThru
                   if (-not $install.WaitForExit(180000)) { throw "Previous installer timed out" }
                   if ($install.ExitCode -ne 0) { throw "Previous installer failed: $($install.ExitCode)" }
