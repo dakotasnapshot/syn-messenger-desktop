@@ -6,13 +6,14 @@ import { generateKeyPairSync, createHash, sign } from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 async function main() {
+app.disableHardwareAcceleration();
 await app.whenReady();
 console.log("Native acceptance: Electron ready");
-if (process.argv.includes("--self-check")) { app.exit(0); return; }
+if (process.argv.includes("--self-check")) { setTimeout(() => app.quit(), 250); return; }
 const scriptIndex = process.argv.findIndex(arg => path.resolve(arg) === fileURLToPath(import.meta.url));
 const [kind, installer, previousExecutable, testRoot] = process.argv.slice(scriptIndex + 1);
 if (scriptIndex < 0 || !["msi", "deb", "tar.gz"].includes(kind) || !testRoot) throw new Error("Usage: kind installer previous-executable test-root");
-if (process.argv.includes("--self-check-args")) { console.log("Native acceptance: argument routing verified"); app.exit(0); return; }
+if (process.argv.includes("--self-check-args")) { console.log("Native acceptance: argument routing verified"); setTimeout(() => app.quit(), 250); return; }
 
 await fs.mkdir(testRoot, { recursive: true });
 const userData = path.join(testRoot, "profile"); await fs.mkdir(userData, { recursive: true });
