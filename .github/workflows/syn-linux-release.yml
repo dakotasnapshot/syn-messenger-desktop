@@ -17,6 +17,7 @@ permissions:
 jobs:
     build:
         runs-on: ubuntu-24.04
+        timeout-minutes: 40
         env:
             VARIANT_PATH: syn/release/build.json
             VERSION: ${{ inputs.version || '0.1.10' }}

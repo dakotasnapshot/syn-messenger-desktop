@@ -90,3 +90,22 @@ it("uses Windows Installer elevation for MSI without switching profiles or using
     expect(script).toContain("msiexec.exe"); expect(script).toContain("-Verb RunAs");
     expect(script).toContain("/passive /norestart"); expect(mocks.quit).toHaveBeenCalledOnce();
 });
+it("refuses a portable swap when its custom profile is inside the application", async () => {
+    const root = mocks.data;
+    const folder = path.join(root, "portable");
+    await fs.mkdir(path.join(folder, "resources"), { recursive: true });
+    await fs.writeFile(path.join(folder, "syn-messenger"), "synthetic executable");
+    mocks.data = path.join(folder, "profile"); await fs.mkdir(mocks.data);
+    await fs.writeFile(path.join(mocks.data, "account-marker"), "preserve");
+    vi.resetModules();
+    vi.stubGlobal("process", { ...realProcess, platform: "linux", arch: "x64", execPath: path.join(folder, "syn-messenger") });
+    mocks.run.mockImplementation((cmd, args, cb) => cb(new Error("Not a dpkg package"), "", ""));
+    updater = await import("./managed-updater.js"); await updater.startManagedUpdates();
+    mocks.release.kind = "tar.gz"; mocks.release.url = "https://synmessenger.com/downloads/test.tar.gz";
+    await updater.checkManagedUpdates(); await updater.installManagedUpdate();
+    expect(mocks.quit).not.toHaveBeenCalled();
+    expect(await fs.readFile(path.join(mocks.data, "account-marker"), "utf8")).toBe("preserve");
+    expect(mocks.send).toHaveBeenCalledWith("check_updates", expect.stringContaining("profile directory to be outside"));
+    await fs.rm(folder, { recursive: true, force: true });
+    mocks.data = root;
+});

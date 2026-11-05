@@ -162,6 +162,10 @@ export async function installManagedUpdate(): Promise<void> {
 async function installPortable(file: string, release: ManagedRelease): Promise<void> {
     const executable = await fs.realpath(process.execPath);
     const target = path.dirname(executable);
+    const profile = await fs.realpath(app.getPath("userData"));
+    if (profile === target || profile.startsWith(target + path.sep)) {
+        throw new Error("Portable updates require the profile directory to be outside the application directory");
+    }
     // Never replace a managed /opt installation or an arbitrary user directory.
     if (!await fs.stat(path.join(target, "resources", "app.asar")).then(s => s.isFile()).catch(() => false)) {
         throw new Error("Cannot identify portable Syndicate installation");
