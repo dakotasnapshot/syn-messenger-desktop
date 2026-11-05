@@ -119,6 +119,7 @@ jobs:
         runs-on: windows-latest
         env:
             VERSION: 0.1.10
+            MANAGED_WINDOWS_DIAGNOSTICS: ${{ inputs.use_source_updater && '1' || '0' }}
         timeout-minutes: 20
         steps:
             - uses: actions/checkout@v4

@@ -39,6 +39,23 @@ let updaterCode = await fs.readFile(path.join(sourceDir, "managed-updater.js"), 
 // Interactive Polkit/UAC UI acceptance remains a separately reported limitation.
 if (kind === "deb") updaterCode = updaterCode.replaceAll('"/usr/bin/pkexec"', '"/usr/bin/sudo"');
 await fs.writeFile(path.join(moduleDir, "managed-updater.js"), updaterCode);
+if (kind === "msi" && process.env.MANAGED_WINDOWS_DIAGNOSTICS === "1") {
+    updaterCode = updaterCode.replace('const child = spawn("powershell.exe",', 'console.log("Synthetic MSI helper script:", script); const child = spawn("powershell.exe",');
+    await fs.writeFile(path.join(moduleDir, "managed-updater.js"), updaterCode);
+    const { spawn } = await import("node:child_process");
+    for (const detached of [false, true]) {
+        const flag = path.join(testRoot, `powershell-probe-${detached}.txt`);
+        const command = `[System.IO.File]::WriteAllText('${flag.replace(/'/g, "''")}','ok'); Write-Output 'probe-ok'`;
+        const result = await new Promise((resolve, reject) => {
+            const child = spawn("powershell.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(command, "utf16le").toString("base64")], { detached, windowsHide: true, stdio: ["ignore", "pipe", "pipe"] });
+            let stdout="", stderr="";
+            child.stdout.on("data", b => stdout += String(b)); child.stderr.on("data", b => stderr += String(b));
+            child.once("error", reject); child.once("close", code => resolve({code,stdout,stderr}));
+        });
+        console.log("Synthetic PowerShell probe", JSON.stringify({ detached, ...result, file: await fs.readFile(flag,"utf8").catch(()=>null) }));
+    }
+}
+
 // ESM resolves Electron from the parent desktop node_modules, not a temp directory.
 await fs.symlink(fileURLToPath(new URL("../node_modules/", import.meta.url)), path.join(testRoot, "node_modules"), process.platform === "win32" ? "junction" : "dir");
 const bytes = await fs.readFile(installer);
