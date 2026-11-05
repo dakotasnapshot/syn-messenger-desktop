@@ -1,0 +1,27 @@
+{
+  "version": "0.1.10",
+  "source": "7fb2e23121ba0a8dd6c28b3d99c303688683cba9",
+  "nativeBuildRuns": [
+    42042830131,
+    42042834807
+  ],
+  "acceptanceRun": 42044737264,
+  "installers": {
+    "Syndicate-0.1.10-Linux-x86_64.deb": "6c3efbe86ee1da11267205f1f381f22c981c574876dd8bcc1b5240587874d688",
+    "Syndicate-0.1.10-Linux-x86_64.tar.gz": "772d0bcbde0bd8f27ebe15724d7e247c69d3ef9b887c1b90e51802864f8edeac",
+    "Syndicate-0.1.10-Windows-x64.msi": "89060ce94a03742992f8a3295f7311a3646da462cd36de73c25910fb77fa297d",
+    "Syndicate-Setup-0.1.10-Windows-x64.exe": "a415e1bcdeb513fa25fb5c3c7e99a19d45fe3c9aca08abf2716a59a77f17ecad"
+  },
+  "checks": [
+    "93 regressions",
+    "desktop TypeScript",
+    "native MSI/DEB/tar/Squirrel upgrades",
+    "portable repeat/rollback rotation",
+    "MSI executable relaunch",
+    "synthetic profile preservation",
+    "server whole-file hashes",
+    "public signed envelopes and byte ranges",
+    "web baked/served version alignment",
+    "desktop/mobile website counters"
+  ]
+}

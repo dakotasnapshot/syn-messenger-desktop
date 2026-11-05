@@ -15,3 +15,16 @@ The public key is pinned in `managed-update-manifest.ts`; keep its private count
 ## Validation
 
 Run manifest/updater tests, profile/config regressions and desktop TypeScript checks. Native release workflows additionally install the previous public MSI/DEB/tar package and exercise the real candidate updater module with the just-built candidate. The disposable harness replaces only a **test copy** of the public key with an ephemeral test key; production modules remain pinned. Headless Debian tests substitute `sudo` for Polkit while exercising the same `dpkg` argv; do not describe that as interactive Polkit UI validation. Verify the installed renderer hash and synthetic profile marker. No personal account stores are used.
+
+## Runtime integration and acceptance
+
+- Return the managed feed from the existing `getUpdateFeedUrl` IPC method, because the renderer uses it to enable About → Check for Updates. Keep native Squirrel/macOS feed discovery as the fallback.
+- Use Electron's `original-fs` promises for real portable archive staging, access, renames and cleanup. Its normal filesystem presents ASAR files as virtual directories; use the patched filesystem only to read embedded package identity.
+- Start Windows PowerShell through the independent `cmd start` launcher, not directly with `DETACHED_PROCESS`. The helper retains normal user privileges, requests Windows Installer authorization, acknowledges admission through a private file, waits for installation and the old process, then relaunches the app. Keep installer errors in the private update cache.
+- Run Electron acceptance from an asynchronously invoked main function rather than awaiting `app.whenReady()` at ESM entry scope. Locate arguments relative to the script path so Electron switches do not shift package arguments. Use normal app shutdown for successful smoke checks.
+- Test against the exact updater modules extracted from the candidate `app.asar`. Treat optional source-only preflight as development feedback, not packaged acceptance. Test a second portable update to verify rollback rotation, and tolerate only transient missing paths while polling an atomic swap; require the final installed hashes.
+- Verify both installed payload hashes and preserved synthetic profile markers. On Windows, also verify that the updated executable relaunches. Do not reset real account stores or equate headless `sudo` testing with interactive Polkit/UAC acceptance.
+
+## Release tooling
+
+Use `scripts/sign-managed-release.mjs` with an outside-repository private key to produce the authenticated envelopes after native gates pass. Keep recovery copies restricted and verify their full readback. Publish payloads before feed metadata; verify public envelopes with the pinned key, fresh cache headers, exact lengths and byte ranges. Feed rollback does not downgrade installed clients or revoke already-downloaded updates; use a forward fix when needed.
