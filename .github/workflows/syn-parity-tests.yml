@@ -7,6 +7,14 @@ on:
                 description: Optional successful Windows artifact run for the previous-install upgrade check
                 required: false
                 type: string
+            linux_run_id:
+                description: Built Linux candidate run for exact packaged updater acceptance
+                required: false
+                type: string
+            managed_windows_run_id:
+                description: Built Windows candidate run for exact packaged MSI updater acceptance
+                required: false
+                type: string
             candidate_version:
                 description: Candidate version
                 default: 0.1.10
@@ -25,7 +33,7 @@ permissions:
 
 jobs:
     encrypted-gif:
-        if: ${{ !inputs.windows_run_id }}
+        if: ${{ !inputs.windows_run_id && !inputs.linux_run_id && !inputs.managed_windows_run_id }}
         runs-on: ubuntu-24.04
         timeout-minutes: 20
         env:
@@ -117,3 +125,11 @@ jobs:
                       upgrade-result.txt
                       ~/AppData/Local/SquirrelTemp/SquirrelSetup.log
                   retention-days: 14
+
+    managed-updates:
+        if: ${{ inputs.linux_run_id != '' || inputs.managed_windows_run_id != '' }}
+        uses: ./.github/workflows/syn-managed-acceptance.yml
+        with:
+            linux_run_id: ${{ inputs.linux_run_id }}
+            windows_run_id: ${{ inputs.managed_windows_run_id }}
+        secrets: inherit

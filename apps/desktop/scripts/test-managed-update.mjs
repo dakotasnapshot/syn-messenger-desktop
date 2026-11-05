@@ -9,8 +9,10 @@ async function main() {
 await app.whenReady();
 console.log("Native acceptance: Electron ready");
 if (process.argv.includes("--self-check")) { app.exit(0); return; }
-const [kind, installer, previousExecutable, testRoot] = process.argv.slice(2);
-if (!["msi", "deb", "tar.gz"].includes(kind) || !testRoot) throw new Error("Usage: kind installer previous-executable test-root");
+const scriptIndex = process.argv.findIndex(arg => path.resolve(arg) === fileURLToPath(import.meta.url));
+const [kind, installer, previousExecutable, testRoot] = process.argv.slice(scriptIndex + 1);
+if (scriptIndex < 0 || !["msi", "deb", "tar.gz"].includes(kind) || !testRoot) throw new Error("Usage: kind installer previous-executable test-root");
+if (process.argv.includes("--self-check-args")) { console.log("Native acceptance: argument routing verified"); app.exit(0); return; }
 
 await fs.mkdir(testRoot, { recursive: true });
 const userData = path.join(testRoot, "profile"); await fs.mkdir(userData, { recursive: true });
@@ -23,7 +25,7 @@ app.relaunch = () => { /* Native installer verified externally, don't loop the h
 
 // Test copy only: an ephemeral signing key authenticates the just-built candidate.
 // Production modules retain the pinned release key and fixed HTTPS origin.
-const sourceDir = fileURLToPath(new URL("../lib/", import.meta.url));
+const sourceDir = process.env.MANAGED_TEST_MODULE_DIR || fileURLToPath(new URL("../lib/", import.meta.url));
 const moduleDir = path.join(testRoot, "modules"); await fs.mkdir(moduleDir, { recursive: true });
 await fs.writeFile(path.join(testRoot, "package.json"), '{"type":"module"}');
 const keys = generateKeyPairSync("ed25519");
@@ -37,7 +39,7 @@ let updaterCode = await fs.readFile(path.join(sourceDir, "managed-updater.js"), 
 if (kind === "deb") updaterCode = updaterCode.replaceAll('"/usr/bin/pkexec"', '"/usr/bin/sudo"');
 await fs.writeFile(path.join(moduleDir, "managed-updater.js"), updaterCode);
 // ESM resolves Electron from the parent desktop node_modules, not a temp directory.
-await fs.symlink(path.resolve(sourceDir, "../node_modules"), path.join(testRoot, "node_modules"), process.platform === "win32" ? "junction" : "dir");
+await fs.symlink(fileURLToPath(new URL("../node_modules/", import.meta.url)), path.join(testRoot, "node_modules"), process.platform === "win32" ? "junction" : "dir");
 const bytes = await fs.readFile(installer);
 const release = { version: "0.1.10", platform: process.platform, arch: process.arch, kind,
     url: `https://synmessenger.com/downloads/acceptance.${kind}`, size: bytes.length,

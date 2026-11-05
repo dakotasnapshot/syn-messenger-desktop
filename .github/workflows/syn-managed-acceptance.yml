@@ -1,0 +1,176 @@
+name: Syndicate packaged updater acceptance
+on:
+    workflow_call:
+        inputs:
+            linux_run_id:
+                required: false
+                type: string
+            windows_run_id:
+                required: false
+                type: string
+permissions:
+    contents: read
+    actions: read
+jobs:
+    linux:
+        if: ${{ inputs.linux_run_id != '' }}
+        runs-on: ubuntu-24.04
+        timeout-minutes: 20
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 11.22.0
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: apps/desktop/.node-version
+                  cache: pnpm
+            - run: pnpm install --frozen-lockfile
+            - run: sudo apt-get update && sudo apt-get install -y xvfb libgtk-3-0 libnss3 libasound2t64 libgbm1 libnotify4 libxss1 libxtst6 libsecret-1-0
+            - name: Download built Linux candidate
+              uses: actions/download-artifact@v4
+              with:
+                  name: syndicate-linux-0.1.10
+                  path: apps/desktop/dist
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  run-id: ${{ inputs.linux_run_id }}
+            - name: Extract exact packaged updater code
+              run: |
+                  set -euo pipefail
+                  mkdir -p acceptance/candidate
+                  tar -xzf apps/desktop/dist/*.tar.gz -C acceptance/candidate
+                  candidate="$PWD/acceptance/candidate/syn-messenger-0.1.10"
+                  node apps/desktop/scripts/extract-managed-test-modules.mjs "$candidate/resources/app.asar" "$PWD/acceptance/modules"
+                  cp "$candidate/resources/webapp.asar" apps/desktop/webapp.asar
+                  echo "MANAGED_TEST_MODULE_DIR=$PWD/acceptance/modules" >> "$GITHUB_ENV"
+            - name: Fetch exact previously published Linux installers
+              uses: actions/download-artifact@v4
+              with:
+                  name: syndicate-linux-0.1.9
+                  path: acceptance/previous
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  run-id: 42019953709
+
+            - name: Native Debian and portable updater acceptance
+              shell: bash
+              timeout-minutes: 10
+              run: |
+                  set -euo pipefail
+                  mkdir -p acceptance
+                  test "$(sha256sum acceptance/previous/syn-messenger_0.1.9_amd64.deb | cut -d' ' -f1)" = "4cfce0f050797b4905403026ac96ca56d4f111553458753434f5ff4f63dfeac6"
+                  cp acceptance/previous/syn-messenger_0.1.9_amd64.deb acceptance/previous.deb
+                  sudo dpkg --install acceptance/previous.deb
+                  previous=$(dpkg -L syn-messenger | sed -n '\|/syn-messenger$|p' | head -1)
+                  candidate=$(realpath apps/desktop/dist/*.deb)
+                  timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs deb "$candidate" "$previous" "$PWD/acceptance/deb" 2>&1 | tee acceptance/deb-harness.log
+                  test "$(dpkg-query -W -f='${Version}' syn-messenger)" = "0.1.10"
+                  sha256sum "$(dirname "$previous")/resources/webapp.asar" apps/desktop/webapp.asar | awk '{print $1}' | uniq | wc -l | xargs test 1 -eq
+                  test "$(sha256sum acceptance/previous/syn-messenger-0.1.9.tar.gz | cut -d' ' -f1)" = "f5f49a98c4e7c943378ab4257029415c227c6f53a0949f67c14a51fb6868249a"
+                  cp acceptance/previous/syn-messenger-0.1.9.tar.gz acceptance/previous.tar.gz
+                  tar -xzf acceptance/previous.tar.gz -C acceptance
+                  portable="$PWD/acceptance/syn-messenger-0.1.9"
+                  archive=$(realpath apps/desktop/dist/*.tar.gz)
+                  timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs tar.gz "$archive" "$portable/syn-messenger" "$PWD/acceptance/portable" 2>&1 | tee acceptance/portable-harness.log
+                  expected=$(sha256sum apps/desktop/webapp.asar | cut -d' ' -f1)
+                  for i in $(seq 1 30); do
+                    actual=$(sha256sum "$portable/resources/webapp.asar" | cut -d' ' -f1)
+                    [ "$actual" != "$expected" ] || break
+                    sleep 1
+                  done
+                  test "$actual" = "$expected"
+                  test -f "$portable.previous/resources/app.asar"
+                  echo "Native DEB and tar 0.1.9 -> 0.1.10 updater installs verified" > acceptance/native-result.txt
+
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: syndicate-linux-updater-acceptance
+                  path: |
+                      acceptance/**/updater-result.json
+                      acceptance/native-result.txt
+                      acceptance/*-harness.log
+                      acceptance/modules/packaged-module-hashes.json
+                  if-no-files-found: warn
+
+    windows:
+        if: ${{ inputs.windows_run_id != '' }}
+        runs-on: windows-latest
+        env:
+            VERSION: 0.1.10
+        timeout-minutes: 20
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 11.22.0
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: apps/desktop/.node-version
+                  cache: pnpm
+            - run: pnpm install --frozen-lockfile
+            - name: Download built Windows candidate
+              uses: actions/download-artifact@v4
+              with:
+                  name: syn-messenger-windows-unsigned-0.1.10
+                  path: apps/desktop/dist
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  run-id: ${{ inputs.windows_run_id }}
+            - name: Extract exact packaged updater code
+              shell: pwsh
+              run: |
+                  $ErrorActionPreference = "Stop"
+                  New-Item -ItemType Directory -Force acceptance/candidate | Out-Null
+                  Add-Type -AssemblyName System.IO.Compression.FileSystem
+                  $package = @(Get-ChildItem apps/desktop/dist -Filter "*-full.nupkg")
+                  if ($package.Count -ne 1) { throw "Expected one NuGet candidate" }
+                  [System.IO.Compression.ZipFile]::ExtractToDirectory($package[0].FullName, "$pwd/acceptance/candidate")
+                  $app = "$pwd/acceptance/candidate/lib/net45/resources/app.asar"
+                  node apps/desktop/scripts/extract-managed-test-modules.mjs "$app" "$pwd/acceptance/modules"
+                  Copy-Item "$pwd/acceptance/candidate/lib/net45/resources/webapp.asar" apps/desktop/webapp.asar
+                  "MANAGED_TEST_MODULE_DIR=$pwd/acceptance/modules" | Out-File -FilePath $env:GITHUB_ENV -Append
+            - name: Fetch exact previously published Windows installers
+              uses: actions/download-artifact@v4
+              with:
+                  name: syn-messenger-windows-unsigned-0.1.9
+                  path: acceptance/previous
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  run-id: 42017041651
+
+            - name: Native MSI updater acceptance
+              shell: pwsh
+              timeout-minutes: 10
+              run: |
+                  $ErrorActionPreference = "Stop"
+                  New-Item -ItemType Directory -Force acceptance | Out-Null
+                  $old = (Resolve-Path "acceptance/previous/Syndicate 0.1.9.msi").Path
+                  if ((Get-FileHash $old).Hash.ToLower() -ne "4942056767a0e31f35b82255aaa3bc964c7d9f6459cdf418c790c973f1f09844") { throw "Previous published MSI hash mismatch" }
+                  Copy-Item $old acceptance/previous.msi
+                  $previous = (Resolve-Path acceptance/previous.msi).Path
+                  $p = Start-Process msiexec.exe -ArgumentList "/i `"$previous`" /qn /norestart" -Wait -PassThru
+                  if ($p.ExitCode -notin @(0,3010)) { throw "Previous MSI failed: $($p.ExitCode)" }
+                  $installed = @(Get-ChildItem "$env:ProgramFiles/Syndicate" -Filter Syndicate.exe -Recurse)
+                  if ($installed.Count -ne 1) { throw "Expected one MSI app executable" }
+                  $candidate = (Resolve-Path "apps/desktop/dist/Syndicate $env:VERSION.msi").Path
+                  $testRoot = "$pwd/acceptance/msi"
+                  pnpm --filter element-desktop exec electron scripts/test-managed-update.mjs msi "$candidate" "$($installed[0].FullName)" "$testRoot" 2>&1 | Tee-Object -FilePath acceptance/msi-harness.log
+                  if ($LASTEXITCODE -ne 0) { throw "MSI updater harness failed" }
+                  if (-not (Test-Path "$testRoot/updater-result.json")) { throw "Missing MSI updater receipt" }
+                  $renderer = Join-Path $installed[0].DirectoryName "resources/webapp.asar"
+                  $expected = (Get-FileHash apps/desktop/webapp.asar).Hash
+                  for ($i=0; $i -lt 120; $i++) {
+                    if ((Test-Path $renderer) -and (Get-FileHash $renderer).Hash -eq $expected) { break }
+                    Start-Sleep -Seconds 1
+                  }
+                  if ((Get-FileHash $renderer).Hash -ne $expected) { throw "Installed MSI renderer mismatch" }
+                  "MSI updater 0.1.9 -> 0.1.10: PASS" | Set-Content acceptance/native-result.txt
+
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: syndicate-windows-updater-acceptance
+                  path: |
+                      acceptance/**/updater-result.json
+                      acceptance/native-result.txt
+                      acceptance/msi-harness.log
+                      acceptance/modules/packaged-module-hashes.json
+                  if-no-files-found: warn

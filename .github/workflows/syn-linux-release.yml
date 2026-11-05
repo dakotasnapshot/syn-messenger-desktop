@@ -42,7 +42,7 @@ jobs:
 
             - name: Smoke test native acceptance startup
               timeout-minutes: 2
-              run: timeout 90s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs --self-check
+              run: timeout 90s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs deb unused unused unused --self-check-args
 
             - name: Build customized Syndicate web client
               env:
