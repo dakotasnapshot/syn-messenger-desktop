@@ -135,18 +135,30 @@ export async function installManagedUpdate(): Promise<void> {
             const launch = `Start-Process -FilePath ${executable}${launchArgs ? ` -ArgumentList ${quote(launchArgs)}` : ""}`;
             const log = quote(path.join(path.dirname(file), "install.log"));
             const ready = path.join(path.dirname(file), `msi-started-${process.pid}.txt`);
+            const failed = path.join(path.dirname(file), `msi-failed-${process.pid}.txt`);
             await fs.rm(ready, { force: true });
+            await fs.rm(failed, { force: true });
             // Detached Windows consoles do not reliably deliver pipe output.
             // A private acknowledgement file records successful UAC admission.
-            const script = `$ErrorActionPreference='Stop'; $p=Start-Process -FilePath "$env:WINDIR\\System32\\msiexec.exe" -ArgumentList ${quote(args)} -Verb RunAs -PassThru; [System.IO.File]::WriteAllText(${quote(ready)},'SYNDICATE_INSTALL_STARTED'); $p.WaitForExit(); Set-Content -LiteralPath ${log} -Value ("MSI exit: " + $p.ExitCode); Wait-Process -Id ${process.pid} -Timeout 120 -ErrorAction SilentlyContinue; ${launch}`;
-            const child = spawn("powershell.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")], { detached: true, windowsHide: true, stdio: ["ignore", "ignore", "pipe"] });
+            const script = `$ErrorActionPreference='Stop'; try { $p=Start-Process -FilePath "$env:WINDIR\\System32\\msiexec.exe" -ArgumentList ${quote(args)} -Verb RunAs -PassThru; [System.IO.File]::WriteAllText(${quote(ready)},'SYNDICATE_INSTALL_STARTED'); $p.WaitForExit(); Set-Content -LiteralPath ${log} -Value ("MSI exit: " + $p.ExitCode); Wait-Process -Id ${process.pid} -Timeout 120 -ErrorAction SilentlyContinue; ${launch} } catch { [System.IO.File]::WriteAllText(${quote(failed)},$_.Exception.Message); exit 1 }`;
+            const systemRoot = process.env.SystemRoot ?? process.env.WINDIR ?? "C:/Windows";
+            const commandShell = path.join(systemRoot, "System32", "cmd.exe");
+            const powershell = path.join(systemRoot, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+            // Windows PowerShell exits without executing when given DETACHED_PROCESS.
+            // A detached cmd starter gives it a separate, hidden console instead.
+            const command = `start "" /min "${powershell}" -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand ${Buffer.from(script, "utf16le").toString("base64")}`;
+            const child = spawn(commandShell, ["/d", "/s", "/c", command], { detached: true, windowsHide: true, windowsVerbatimArguments: true, stdio: ["ignore", "ignore", "pipe"] });
             let closed = false;
             let failure: Error | undefined;
             let detail = "";
             child.once("error", error => { failure = error; closed = true; });
-            child.once("close", code => { closed = true; failure ??= new Error(`Windows installer authorization failed (${code})`); });
+            child.once("close", code => { if (code !== 0) { closed = true; failure ??= new Error(`Windows installer launcher failed (${code})`); } });
             child.stderr!.on("data", chunk => { detail = (detail + String(chunk)).slice(-2048); });
+            const deadline = Date.now() + 5 * 60_000;
             while (true) {
+                const helperError = await fs.readFile(failed, "utf8").catch(() => "");
+                if (helperError) throw new Error(helperError);
+                if (Date.now() > deadline) throw new Error("Windows installer did not acknowledge startup");
                 if (await fs.readFile(ready, "utf8").then(s => s.trim() === "SYNDICATE_INSTALL_STARTED").catch(() => false)) break;
                 if (closed) throw new Error(`${failure?.message ?? "Windows installer could not start"}${detail.trim() ? ": " + detail.trim() : ""}`);
                 await new Promise(resolve => setTimeout(resolve, 50));

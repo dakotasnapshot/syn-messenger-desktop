@@ -84,9 +84,9 @@ it("uses Windows Installer elevation for MSI without switching profiles or using
     updater = await import("./managed-updater.js");
     mocks.release.kind = "msi"; mocks.release.platform = "win32"; mocks.release.url = "https://synmessenger.com/downloads/test.msi";
     await updater.startManagedUpdates(); await updater.checkManagedUpdates(); await updater.installManagedUpdate();
-    const call = mocks.spawn.mock.calls.find(c => c[0] === "powershell.exe");
+    const call = mocks.spawn.mock.calls.find(c => String(c[0]).endsWith("cmd.exe"));
     expect(call).toBeDefined();
-    const script = Buffer.from(call![1][3], "base64").toString("utf16le");
+    const script = Buffer.from(call![1][3].match(/-EncodedCommand ([A-Za-z0-9+/=]+)/)[1], "base64").toString("utf16le");
     expect(script).toContain("msiexec.exe"); expect(script).toContain("-Verb RunAs");
     expect(script).toContain("/passive /norestart"); expect(mocks.quit).toHaveBeenCalledOnce();
 });
