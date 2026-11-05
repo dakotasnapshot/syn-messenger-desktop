@@ -19,6 +19,7 @@ jobs:
     encrypted-gif:
         if: ${{ !inputs.windows_run_id }}
         runs-on: ubuntu-24.04
+        timeout-minutes: 20
         env:
             NX_DAEMON: "false"
             NX_ISOLATE_PLUGINS: "false"
@@ -54,6 +55,7 @@ jobs:
     windows-upgrade:
         if: ${{ inputs.windows_run_id != '' }}
         runs-on: windows-latest
+        timeout-minutes: 20
         steps:
             - uses: actions/download-artifact@v4
               with:
@@ -68,7 +70,7 @@ jobs:
                   Invoke-WebRequest "https://synmessenger.com/downloads/Syndicate-Setup-0.1.5-Windows-x64.exe" -OutFile previous.exe
                   $install = Start-Process -FilePath "$pwd/previous.exe" -ArgumentList "--silent" -PassThru -Wait
                   if ($install.ExitCode -ne 0) { throw "Previous installer failed: $($install.ExitCode)" }
-                  $updaters = @(Get-ChildItem $env:LOCALAPPDATA -Filter Update.exe -Recurse -ErrorAction SilentlyContinue)
+                  $updaters = @(Get-ChildItem $env:LOCALAPPDATA -Filter Update.exe -Recurse -ErrorAction SilentlyContinue | Where-Object { Test-Path "$($_.DirectoryName)/app-0.1.5" })
                   if ($updaters.Count -ne 1) { throw "Expected one installed Squirrel updater, found $($updaters.Count)" }
                   $updater = $updaters[0]
                   $appRoot = $updater.DirectoryName
