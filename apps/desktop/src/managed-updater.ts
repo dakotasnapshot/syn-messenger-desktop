@@ -10,7 +10,7 @@ import { spawn, execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { Readable, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
-import { authenticateRelease, newerVersion, shellQuote, MANAGED_UPDATE_ORIGIN, type PackageKind, type ManagedRelease } from "./managed-update-manifest.js";
+import { authenticateRelease, newerVersion, shellQuote, windowsArgument, MANAGED_UPDATE_ORIGIN, type PackageKind, type ManagedRelease } from "./managed-update-manifest.js";
 
 const run = promisify(execFile);
 let kind: PackageKind | undefined;
@@ -126,7 +126,7 @@ export async function installManagedUpdate(): Promise<void> {
             const quote = (s: string): string => "'" + s.replace(/'/g, "''") + "'";
             const args = `/i "${file}" /passive /norestart`;
             const executable = quote(process.execPath);
-            const launchArgs = process.argv.slice(1).map(s => `"${s.replace(/"/g, '\\"')}"`).join(" ");
+            const launchArgs = process.argv.slice(1).map(windowsArgument).join(" ");
             const launch = `Start-Process -FilePath ${executable}${launchArgs ? ` -ArgumentList ${quote(launchArgs)}` : ""}`;
             const log = quote(path.join(path.dirname(file), "install.log"));
             // An unprivileged detached helper survives Restart Manager closing

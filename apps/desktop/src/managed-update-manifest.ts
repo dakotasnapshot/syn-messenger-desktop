@@ -65,3 +65,7 @@ export function authenticateRelease(
 export function shellQuote(value: string): string {
     return "'" + value.replace(/'/g, "'\\''") + "'";
 }
+
+export function windowsArgument(value: string): string {
+    return '"' + value.replace(/(\\*)"/g, '$1$1\\"').replace(/(\\+)$/, "$1$1") + '"';
+}
