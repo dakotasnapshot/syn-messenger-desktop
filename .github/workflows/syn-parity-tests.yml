@@ -34,7 +34,7 @@ jobs:
               run: pnpm exec vitest run apps/web/src/utils/GiphyClient.test.ts apps/web/src/components/views/rooms/MessageComposerUrlPreview.test.tsx apps/desktop/src/args.test.ts apps/desktop/src/config.test.ts
             - name: Verify encrypted GIF delivery
               working-directory: apps/web
-              run: pnpm exec playwright test --config playwright.parity.config.ts --project Chrome playwright/e2e/file-upload/gif-picker.spec.ts
+              run: pnpm exec playwright test --config playwright.parity.config.ts --project=Chrome playwright/e2e/file-upload/gif-picker.spec.ts
             - uses: actions/upload-artifact@v4
               if: always()
               with:
