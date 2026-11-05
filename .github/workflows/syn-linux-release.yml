@@ -86,4 +86,3 @@ jobs:
                       apps/web/webapp/syndicate-release.json
                   if-no-files-found: error
                   retention-days: 30
-
