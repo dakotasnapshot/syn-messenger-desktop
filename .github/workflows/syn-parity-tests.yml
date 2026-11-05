@@ -1,0 +1,45 @@
+name: Syndicate desktop parity tests
+
+on:
+    workflow_dispatch:
+    push:
+        branches:
+            - syn/main
+
+permissions:
+    contents: read
+
+jobs:
+    encrypted-gif:
+        runs-on: ubuntu-24.04
+        env:
+            NX_DAEMON: "false"
+            NX_ISOLATE_PLUGINS: "false"
+            NODE_OPTIONS: --max-old-space-size=6144
+        steps:
+            - uses: actions/checkout@v4
+            - uses: pnpm/action-setup@v4
+              with:
+                  version: 11.22.0
+            - uses: actions/setup-node@v4
+              with:
+                  node-version-file: apps/desktop/.node-version
+                  cache: pnpm
+            - run: pnpm install --frozen-lockfile
+            - run: cp apps/desktop/syn/release/config.json apps/web/config.json
+            - run: pnpm --filter element-web build
+            - run: pnpm exec nx run playwright-common:build:playwright
+            - run: pnpm exec playwright install --with-deps chromium
+            - name: GIF, profile and preview regression tests
+              run: pnpm exec vitest run apps/web/src/utils/GiphyClient.test.ts apps/web/src/components/views/rooms/MessageComposerUrlPreview.test.tsx apps/desktop/src/args.test.ts apps/desktop/src/config.test.ts
+            - name: Verify encrypted GIF delivery
+              working-directory: apps/web
+              run: pnpm exec playwright test --config playwright.parity.config.ts --project Chrome playwright/e2e/file-upload/gif-picker.spec.ts
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: syndicate-parity-test-results
+                  path: |
+                      apps/web/playwright/test-results/
+                      apps/web/playwright/html-report/
+                  retention-days: 14
