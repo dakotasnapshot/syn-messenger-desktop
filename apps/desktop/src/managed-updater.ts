@@ -167,7 +167,11 @@ async function installPortable(file: string, release: ManagedRelease): Promise<v
         throw new Error("Portable updates require the profile directory to be outside the application directory");
     }
     // Never replace a managed /opt installation or an arbitrary user directory.
-    if (!await fs.stat(path.join(target, "resources", "app.asar")).then(s => s.isFile()).catch(() => false)) {
+    // Electron presents an ASAR archive as a virtual directory, not an ordinary
+    // file. Validate the embedded application identity through its patched FS.
+    const metadata = await fs.readFile(path.join(target, "resources", "app.asar", "package.json"), "utf8")
+        .then(text => JSON.parse(text) as { electron_appId?: string }).catch(() => undefined);
+    if (metadata?.electron_appId !== "app.syn.messenger.desktop") {
         throw new Error("Cannot identify portable Syndicate installation");
     }
     await fs.access(path.dirname(target), constants.W_OK);
