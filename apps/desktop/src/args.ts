@@ -106,12 +106,14 @@ function getUserDataPath(argv: ParsedArgs, protocolHandler: ProtocolHandler): st
     // separate profile. Keep that profile usable for people whose first install was
     // 0.1.5, while preferring the original profile whenever it exists so upgrades retain
     // login state, encryption keys, device trust, and settings.
-    if (app.getName() === "SYN Messenger" && !newUserDataPathExists) {
+    if (["SYN Messenger", "SYN-Messenger"].includes(app.getName()) && !newUserDataPathExists) {
         let syndicateUserDataPath = path.join(app.getPath("appData"), "Syndicate");
         if (argv["profile"]) {
             syndicateUserDataPath += "-" + argv["profile"];
         }
         if (isRealUserDataDir(syndicateUserDataPath)) {
+            // Linux keyring lookups must retain the identity that encrypted the existing profile.
+            if (process.platform === "linux") app.setName("Syndicate");
             console.log(`Using Syndicate 0.1.5 user data path: ${syndicateUserDataPath}`);
             return syndicateUserDataPath;
         }

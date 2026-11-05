@@ -45,8 +45,8 @@ jobs:
                   NX_ISOLATE_PLUGINS: "false"
               run: pnpm --filter element-web build
 
-            - name: Test Syndicate GIF integration
-              run: pnpm exec vitest run apps/web/src/utils/GiphyClient.test.ts
+            - name: Test Syndicate GIF and profile integration
+              run: pnpm exec vitest run apps/web/src/utils/GiphyClient.test.ts apps/desktop/src/args.test.ts apps/desktop/src/config.test.ts
 
             - name: Package and verify Syndicate renderer
               working-directory: apps/desktop

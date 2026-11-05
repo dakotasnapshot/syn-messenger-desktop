@@ -22,6 +22,7 @@ vi.mock("electron", () => ({
         }),
         getName: vi.fn().mockReturnValue("Element"),
         exit: vi.fn(),
+        setName: vi.fn(),
     },
 }));
 
@@ -30,6 +31,7 @@ beforeEach(() => {
     vol.reset();
     vi.restoreAllMocks();
     vi.clearAllMocks();
+    vi.mocked(app.getName).mockReturnValue("Element");
 });
 
 describe("getArgsForProtocolRegistration", () => {
@@ -284,6 +286,42 @@ describe("getArgs", () => {
 
             const args = run();
             expect(args.userDataPath).toBe("/Users/name/Library/Application Support/Syndicate");
+        });
+
+        it("retains Linux 0.1.5 profile and keyring identity after the runtime name is hyphenated", () => {
+            const platform = Object.getOwnPropertyDescriptor(process, "platform")!;
+            Object.defineProperty(process, "platform", { value: "linux", configurable: true });
+            try {
+                vi.mocked(app.getName).mockReturnValue("SYN-Messenger");
+                vol.fromJSON({
+                    "/Users/name/Library/Application Support/Syndicate/IndexedDB": "synthetic database",
+                });
+                expect(run().userDataPath).toBe("/Users/name/Library/Application Support/Syndicate");
+                expect(app.setName).toHaveBeenCalledWith("Syndicate");
+            } finally {
+                Object.defineProperty(process, "platform", platform);
+            }
+        });
+
+        it("retains named Linux profiles without selecting a different account", () => {
+            vi.mocked(app.getName).mockReturnValue("SYN-Messenger");
+            vol.fromJSON({
+                "/Users/name/Library/Application Support/Syndicate-work/IndexedDB": "synthetic work database",
+                "/Users/name/Library/Application Support/Syndicate/IndexedDB": "synthetic personal database",
+            });
+            expect(run("--profile", "work").userDataPath).toBe(
+                "/Users/name/Library/Application Support/Syndicate-work",
+            );
+        });
+
+        it("prefers an existing original Linux profile over a renamed profile", () => {
+            vi.mocked(app.getName).mockReturnValue("SYN-Messenger");
+            vol.fromJSON({
+                "/Users/name/Library/Application Support/Element/IndexedDB": "synthetic original database",
+                "/Users/name/Library/Application Support/Syndicate/IndexedDB": "synthetic renamed database",
+            });
+            expect(run().userDataPath).toBe("/Users/name/Library/Application Support/Element");
+            expect(app.setName).not.toHaveBeenCalled();
         });
     });
 

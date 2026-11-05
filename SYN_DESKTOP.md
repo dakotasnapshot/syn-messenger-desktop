@@ -62,3 +62,5 @@ Build customized renderer from this checkout, never upstream prebuilt Element. P
 Parity: GIF search/trending/attribution through Matrix media upload (including encrypted rooms), URL/image previews, unread notification badges, Syndicate identity and existing-profile preservation. Native encrypted-history search remains the separate roadmap above.
 
 Windows EXE/Squirrel installs poll `/desktop/update/win32/x64/RELEASES`; publish complete `.nupkg` before RELEASES. MSI installations do not use Squirrel automatic updates. Linux DEB/tar.gz do not support Electron auto-update; users install the new package. Do not claim automatic Linux delivery.
+
+Linux packaging hyphenates the runtime name to `SYN-Messenger`. Profile fallback accepts that identity and preserves `Syndicate` as the Linux keyring identity when retaining a 0.1.5 profile. Keep this before safeStorage initialization; never copy, reset or re-encrypt profile stores to work around naming changes. Named profiles remain isolated.
