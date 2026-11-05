@@ -8,11 +8,16 @@ import path from "node:path";
 import { createHash } from "node:crypto";
 import { spawn, execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { createRequire } from "node:module";
 import { Readable, Transform } from "node:stream";
 import { pipeline } from "node:stream/promises";
 import { authenticateRelease, newerVersion, shellQuote, windowsArgument, MANAGED_UPDATE_ORIGIN, type PackageKind, type ManagedRelease } from "./managed-update-manifest.js";
 
 const run = promisify(execFile);
+// Updater staging contains real ASAR blobs. Electron's patched filesystem treats
+// those as directories, so replacement/cleanup must use its raw filesystem.
+const rawFs: typeof fs = process.versions.electron
+    ? createRequire(import.meta.url)("original-fs").promises as typeof fs : fs;
 let kind: PackageKind | undefined;
 let pending: { release: ManagedRelease; file: string } | undefined;
 let busy = false;
@@ -163,9 +168,9 @@ export async function installManagedUpdate(): Promise<void> {
 }
 
 async function installPortable(file: string, release: ManagedRelease): Promise<void> {
-    const executable = await fs.realpath(process.execPath);
+    const executable = await rawFs.realpath(process.execPath);
     const target = path.dirname(executable);
-    const profile = await fs.realpath(app.getPath("userData"));
+    const profile = await rawFs.realpath(app.getPath("userData"));
     if (profile === target || profile.startsWith(target + path.sep)) {
         throw new Error("Portable updates require the profile directory to be outside the application directory");
     }
@@ -177,11 +182,11 @@ async function installPortable(file: string, release: ManagedRelease): Promise<v
     if (metadata?.electron_appId !== "app.syn.messenger.desktop") {
         throw new Error("Cannot identify portable Syndicate installation");
     }
-    await fs.access(path.dirname(target), constants.W_OK);
-    const disk = await fs.statfs(path.dirname(target));
+    await rawFs.access(path.dirname(target), constants.W_OK);
+    const disk = await rawFs.statfs(path.dirname(target));
     if (disk.bavail * disk.bsize < release.size * 4 + 512 * 1024 * 1024) throw new Error("Not enough space to unpack update");
-    const staging = await fs.mkdtemp(path.join(path.dirname(target), ".syndicate-update-"));
-    await fs.chmod(staging, 0o700);
+    const staging = await rawFs.mkdtemp(path.join(path.dirname(target), ".syndicate-update-"));
+    await rawFs.chmod(staging, 0o700);
     try {
         const { stdout } = await run("/usr/bin/tar", ["-tzf", file], { maxBuffer: 16 * 1024 * 1024 });
         const prefix = `syn-messenger-${release.version}/`;
@@ -189,30 +194,31 @@ async function installPortable(file: string, release: ManagedRelease): Promise<v
         if (members.some(n => !n.startsWith(prefix) || n.split("/").includes(".."))) throw new Error("Invalid portable archive paths");
         await run("/usr/bin/tar", ["-xzf", file, "-C", staging, "--no-same-owner"], { timeout: 5 * 60_000 });
         const next = path.join(staging, `syn-messenger-${release.version}`);
-        await fs.access(path.join(next, path.basename(executable)), constants.X_OK);
-        await fs.access(path.join(next, "resources", "app.asar"));
+        await rawFs.access(path.join(next, path.basename(executable)), constants.X_OK);
+        await rawFs.access(path.join(next, "resources", "app.asar"));
         // Helper lives outside the replaced app, waits for this process to exit,
         // swaps adjacent directories, and rolls back if the second rename fails.
         // Keep one previous app directory, never touch userData/crypto stores.
         const backup = `${target}.previous`;
         try {
-            const marker = JSON.parse(await fs.readFile(path.join(backup, ".syndicate-update-backup.json"), "utf8"));
+            const marker = JSON.parse(await rawFs.readFile(path.join(backup, ".syndicate-update-backup.json"), "utf8"));
             if (marker.target !== target) throw new Error("Unrecognized previous update backup; move it before updating");
-            await fs.access(path.join(backup, "resources", "app.asar"));
-            await fs.rename(backup, path.join(staging, "obsolete"));
+            await rawFs.access(path.join(backup, "resources", "app.asar"));
+            await rawFs.rename(backup, path.join(staging, "obsolete"));
         } catch (e) {
             if ((e as NodeJS.ErrnoException).code !== "ENOENT") throw e;
             // An existing unmarked directory must never be overwritten/deleted.
-            if (await fs.stat(backup).then(() => true).catch(() => false)) throw new Error("Unrecognized previous update backup");
+            if (await rawFs.stat(backup).then(() => true).catch(() => false)) throw new Error("Unrecognized previous update backup");
         }
         const script = path.join(staging, "install.sh");
         const args = process.argv.slice(1).map(shellQuote).join(" ");
         const marker = shellQuote(JSON.stringify({ target, version: app.getVersion() }));
-        await fs.writeFile(script, `#!/bin/sh\nset -eu\ni=0\nwhile kill -0 ${process.pid} 2>/dev/null; do i=$((i+1)); [ "$i" -lt 120 ] || exit 1; sleep 1; done\nmv -- ${shellQuote(target)} ${shellQuote(backup)}\nif ! mv -- ${shellQuote(next)} ${shellQuote(target)}; then mv -- ${shellQuote(backup)} ${shellQuote(target)}; exit 1; fi\nprintf '%s\\n' ${marker} > ${shellQuote(path.join(backup, ".syndicate-update-backup.json"))}\nrm -rf -- ${shellQuote(path.join(staging, "obsolete"))}\n${shellQuote(executable)} ${args} >/dev/null 2>&1 &\n`, { mode: 0o700 });
+        await rawFs.writeFile(script, `#!/bin/sh\nset -eu\ni=0\nwhile kill -0 ${process.pid} 2>/dev/null; do i=$((i+1)); [ "$i" -lt 120 ] || exit 1; sleep 1; done\nmv -- ${shellQuote(target)} ${shellQuote(backup)}\nif ! mv -- ${shellQuote(next)} ${shellQuote(target)}; then mv -- ${shellQuote(backup)} ${shellQuote(target)}; exit 1; fi\nprintf '%s\\n' ${marker} > ${shellQuote(path.join(backup, ".syndicate-update-backup.json"))}\nrm -rf -- ${shellQuote(path.join(staging, "obsolete"))}\n${shellQuote(executable)} ${args} >/dev/null 2>&1 &\n`, { mode: 0o700 });
         const child = spawn("/bin/sh", [script], { detached: true, stdio: "ignore" });
         await new Promise<void>((resolve, reject) => { child.once("spawn", resolve); child.once("error", reject); });
         child.unref(); global.appQuitting = true; app.quit();
     } catch (error) {
-        await fs.rm(staging, { recursive: true, force: true }); throw error;
+        await rawFs.rm(staging, { recursive: true, force: true }).catch(cleanupError => console.warn("Could not clean update staging", cleanupError));
+        throw error;
     }
 }
