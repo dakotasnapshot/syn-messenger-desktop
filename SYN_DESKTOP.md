@@ -66,3 +66,9 @@ Windows EXE/Squirrel installs poll `/desktop/update/win32/x64/RELEASES`; publish
 Linux packaging hyphenates the runtime name to `SYN-Messenger`. Profile fallback accepts that identity and preserves `Syndicate` as the Linux keyring identity when retaining a 0.1.5 profile. Keep this before safeStorage initialization; never copy, reset or re-encrypt profile stores to work around naming changes. Named profiles remain isolated.
 
 Verified desktop release procedure, artifacts, source checkpoints and acceptance: [0.1.9 release runbook](docs/SYNDICATE_DESKTOP_0.1.9.md).
+
+## MSI and Linux in-app updates (0.1.10 and later)
+
+MSI, DEB and writable portable tar installations include authenticated background downloads and the existing restart/install action. MSI uses normal Windows Installer authorization; DEB uses desktop Polkit. Portable updates retain a managed previous app directory and refuse in-tree custom profiles rather than moving account data. macOS and Squirrel retain their existing mechanisms.
+
+Pre-0.1.10 MSI/Linux installations need one bootstrap installation; their old binaries cannot acquire a missing updater remotely. The 0.1.9 manual-install limits above describe that older release, not the new updater. See [managed-update architecture and release requirements](docs/SYNDICATE_MANAGED_UPDATES.md). Release publication requires successful native acceptance and verified signed feeds; implementation alone is not delivery.

@@ -5,9 +5,13 @@ import path from "node:path";
 import { generateKeyPairSync, createHash, sign } from "node:crypto";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
+async function main() {
+await app.whenReady();
+console.log("Native acceptance: Electron ready");
+if (process.argv.includes("--self-check")) { app.exit(0); return; }
 const [kind, installer, previousExecutable, testRoot] = process.argv.slice(2);
 if (!["msi", "deb", "tar.gz"].includes(kind) || !testRoot) throw new Error("Usage: kind installer previous-executable test-root");
-await app.whenReady();
+
 await fs.mkdir(testRoot, { recursive: true });
 const userData = path.join(testRoot, "profile"); await fs.mkdir(userData, { recursive: true });
 await fs.writeFile(path.join(userData, "synthetic-profile-marker"), "preserve-me");
@@ -57,6 +61,12 @@ app.quit = () => {
 };
 await updater.startManagedUpdates();
 await updater.checkManagedUpdates();
+console.log("Native acceptance: candidate authenticated and downloaded");
 if (!downloaded) throw new Error("No downloaded update was announced");
+console.log("Native acceptance: invoking installer");
 await updater.installManagedUpdate();
+console.log("Native acceptance: installer invocation returned");
 setTimeout(() => { console.error("Installer did not finish"); app.exit(1); }, 30000).unref();
+
+}
+void main().catch(error => { console.error(error); app.exit(1); });
