@@ -1,4 +1,4 @@
-name: Syndicate packaged updater acceptance
+name: Syndicate bridge packaged updater acceptance
 on:
     workflow_call:
         inputs:
@@ -34,7 +34,7 @@ jobs:
             - name: Download built Linux candidate
               uses: actions/download-artifact@v4
               with:
-                  name: syndicate-linux-0.1.10
+                  name: syndicate-linux-0.1.11
                   path: apps/desktop/dist
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   run-id: ${{ inputs.linux_run_id }}
@@ -43,7 +43,7 @@ jobs:
                   set -euo pipefail
                   mkdir -p acceptance/candidate
                   tar -xzf apps/desktop/dist/*.tar.gz -C acceptance/candidate
-                  candidate="$PWD/acceptance/candidate/syn-messenger-0.1.10"
+                  candidate="$PWD/acceptance/candidate/syn-messenger-0.1.11"
                   node apps/desktop/scripts/extract-managed-test-modules.mjs "$candidate/resources/app.asar" "$PWD/acceptance/modules"
                   cp "$candidate/resources/webapp.asar" apps/desktop/webapp.asar
                   echo "MANAGED_TEST_MODULE_DIR=$PWD/acceptance/modules" >> "$GITHUB_ENV"
@@ -56,10 +56,10 @@ jobs:
             - name: Fetch exact previously published Linux installers
               uses: actions/download-artifact@v4
               with:
-                  name: syndicate-linux-0.1.9
+                  name: syndicate-linux-0.1.10
                   path: acceptance/previous
                   github-token: ${{ secrets.GITHUB_TOKEN }}
-                  run-id: 42019953709
+                  run-id: 42042830131
 
             - name: Native Debian and portable updater acceptance
               shell: bash
@@ -67,19 +67,23 @@ jobs:
               run: |
                   set -euo pipefail
                   mkdir -p acceptance
-                  test "$(sha256sum acceptance/previous/syn-messenger_0.1.9_amd64.deb | cut -d' ' -f1)" = "4cfce0f050797b4905403026ac96ca56d4f111553458753434f5ff4f63dfeac6"
-                  cp acceptance/previous/syn-messenger_0.1.9_amd64.deb acceptance/previous.deb
+                  test "$(sha256sum acceptance/previous/syn-messenger_0.1.10_amd64.deb | cut -d' ' -f1)" = "6c3efbe86ee1da11267205f1f381f22c981c574876dd8bcc1b5240587874d688"
+                  cp acceptance/previous/syn-messenger_0.1.10_amd64.deb acceptance/previous.deb
                   sudo dpkg --install acceptance/previous.deb
+                  node apps/desktop/scripts/extract-managed-test-modules.mjs "$(dirname "$(dpkg -L syn-messenger | sed -n '\|^/opt/.*/syn-messenger$|p' | head -1)")/resources/app.asar" "$PWD/acceptance/legacy-modules"
+                  export MANAGED_TEST_CURRENT_VERSION=0.1.10 MANAGED_TEST_CANDIDATE_VERSION=0.1.11
+                  candidate_modules="$MANAGED_TEST_MODULE_DIR"
+                  export MANAGED_TEST_MODULE_DIR="$PWD/acceptance/legacy-modules"
                   previous=$(dpkg -L syn-messenger | sed -n '\|^/opt/.*/syn-messenger$|p' | head -1)
                   test -x "$previous"
                   candidate=$(realpath apps/desktop/dist/*.deb)
                   timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs deb "$candidate" "$previous" "$PWD/acceptance/deb" 2>&1 | tee acceptance/deb-harness.log
-                  test "$(dpkg-query -W -f='${Version}' syn-messenger)" = "0.1.10"
+                  test "$(dpkg-query -W -f='${Version}' syn-messenger)" = "0.1.11"
                   sha256sum "$(dirname "$previous")/resources/webapp.asar" apps/desktop/webapp.asar | awk '{print $1}' | uniq | wc -l | xargs test 1 -eq
-                  test "$(sha256sum acceptance/previous/syn-messenger-0.1.9.tar.gz | cut -d' ' -f1)" = "f5f49a98c4e7c943378ab4257029415c227c6f53a0949f67c14a51fb6868249a"
-                  cp acceptance/previous/syn-messenger-0.1.9.tar.gz acceptance/previous.tar.gz
+                  test "$(sha256sum acceptance/previous/syn-messenger-0.1.10.tar.gz | cut -d' ' -f1)" = "772d0bcbde0bd8f27ebe15724d7e247c69d3ef9b887c1b90e51802864f8edeac"
+                  cp acceptance/previous/syn-messenger-0.1.10.tar.gz acceptance/previous.tar.gz
                   tar -xzf acceptance/previous.tar.gz -C acceptance
-                  portable="$PWD/acceptance/syn-messenger-0.1.9"
+                  portable="$PWD/acceptance/syn-messenger-0.1.10"
                   archive=$(realpath apps/desktop/dist/*.tar.gz)
                   timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs tar.gz "$archive" "$portable/syn-messenger" "$PWD/acceptance/portable" 2>&1 | tee acceptance/portable-harness.log
                   expected=$(sha256sum apps/desktop/webapp.asar | cut -d' ' -f1)
@@ -90,6 +94,12 @@ jobs:
                   done
                   test "$actual" = "$expected"
                   test -f "$portable.previous/resources/app.asar"
+                  export MANAGED_TEST_MODULE_DIR="$candidate_modules"
+                  export MANAGED_TEST_CURRENT_VERSION=0.1.11 MANAGED_TEST_CANDIDATE_VERSION=0.1.12 MANAGED_TEST_GITHUB_DELIVERY=1 MANAGED_TEST_DOWNLOAD_ONLY=1
+                  timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs deb "$candidate" "$previous" "$PWD/acceptance/github-deb"
+                  timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs tar.gz "$archive" "$portable/syn-messenger" "$PWD/acceptance/github-tar"
+                  unset MANAGED_TEST_GITHUB_DELIVERY MANAGED_TEST_DOWNLOAD_ONLY
+                  export MANAGED_TEST_CURRENT_VERSION=0.1.10 MANAGED_TEST_CANDIDATE_VERSION=0.1.11
                   # Repeat the portable update to prove its retained rollback set
                   # is rotated instead of blocking all subsequent updates.
                   timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs tar.gz "$archive" "$portable/syn-messenger" "$PWD/acceptance/portable-repeat" 2>&1 | tee acceptance/portable-repeat-harness.log
@@ -99,7 +109,7 @@ jobs:
                     sleep 1
                   done
                   test "$previous" = "$expected"
-                  echo "Native DEB and tar 0.1.9 -> 0.1.10 updater installs verified" > acceptance/native-result.txt
+                  echo "Native DEB and tar 0.1.10 -> 0.1.11 updater installs verified" > acceptance/native-result.txt
 
             - uses: actions/upload-artifact@v4
               if: always()
@@ -118,7 +128,7 @@ jobs:
         if: ${{ inputs.windows_run_id != '' }}
         runs-on: windows-latest
         env:
-            VERSION: 0.1.10
+            VERSION: 0.1.11
             MANAGED_WINDOWS_DIAGNOSTICS: ${{ inputs.use_source_updater && '1' || '0' }}
         timeout-minutes: 20
         steps:
@@ -134,7 +144,7 @@ jobs:
             - name: Download built Windows candidate
               uses: actions/download-artifact@v4
               with:
-                  name: syn-messenger-windows-unsigned-0.1.10
+                  name: syn-messenger-windows-unsigned-0.1.11
                   path: apps/desktop/dist
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   run-id: ${{ inputs.windows_run_id }}
@@ -160,10 +170,10 @@ jobs:
             - name: Fetch exact previously published Windows installers
               uses: actions/download-artifact@v4
               with:
-                  name: syn-messenger-windows-unsigned-0.1.9
+                  name: syn-messenger-windows-unsigned-0.1.10
                   path: acceptance/previous
                   github-token: ${{ secrets.GITHUB_TOKEN }}
-                  run-id: 42017041651
+                  run-id: 42042834807
 
             - name: Native MSI updater acceptance
               shell: pwsh
@@ -171,8 +181,8 @@ jobs:
               run: |
                   $ErrorActionPreference = "Stop"
                   New-Item -ItemType Directory -Force acceptance | Out-Null
-                  $old = (Resolve-Path "acceptance/previous/Syndicate 0.1.9.msi").Path
-                  if ((Get-FileHash $old).Hash.ToLower() -ne "4942056767a0e31f35b82255aaa3bc964c7d9f6459cdf418c790c973f1f09844") { throw "Previous published MSI hash mismatch" }
+                  $old = (Resolve-Path "acceptance/previous/Syndicate 0.1.10.msi").Path
+                  if ((Get-FileHash $old).Hash.ToLower() -ne "89060ce94a03742992f8a3295f7311a3646da462cd36de73c25910fb77fa297d") { throw "Previous published MSI hash mismatch" }
                   Copy-Item $old acceptance/previous.msi
                   $previous = (Resolve-Path acceptance/previous.msi).Path
                   $p = Start-Process msiexec.exe -ArgumentList "/i `"$previous`" /qn /norestart" -Wait -PassThru
@@ -180,6 +190,11 @@ jobs:
                   $installed = @(Get-ChildItem "$env:ProgramFiles/Syndicate" -Filter Syndicate.exe -Recurse)
                   if ($installed.Count -ne 1) { throw "Expected one MSI app executable" }
                   Get-Process -Name Syndicate -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $installed[0].FullName } | Stop-Process -Force
+                  $candidateModules = $env:MANAGED_TEST_MODULE_DIR
+                  node apps/desktop/scripts/extract-managed-test-modules.mjs "$($installed[0].DirectoryName)/resources/app.asar" "$pwd/acceptance/legacy-modules"
+                  $env:MANAGED_TEST_MODULE_DIR = "$pwd/acceptance/legacy-modules"
+                  $env:MANAGED_TEST_CURRENT_VERSION = "0.1.10"
+                  $env:MANAGED_TEST_CANDIDATE_VERSION = "0.1.11"
                   $candidate = (Resolve-Path "apps/desktop/dist/Syndicate $env:VERSION.msi").Path
                   $testRoot = "$pwd/acceptance/msi"
                   pnpm --filter element-desktop exec electron scripts/test-managed-update.mjs msi "$candidate" "$($installed[0].FullName)" "$testRoot" 2>&1 | Tee-Object -FilePath acceptance/msi-harness.log
@@ -200,7 +215,14 @@ jobs:
                   }
                   if ($running.Count -eq 0) { throw "Updated MSI application did not relaunch" }
                   if ((Get-Content "$testRoot/profile/synthetic-profile-marker" -Raw) -ne "preserve-me") { throw "Profile marker changed after restart" }
-                  "MSI updater 0.1.9 -> 0.1.10 install and app relaunch: PASS" | Set-Content acceptance/native-result.txt
+                  $env:MANAGED_TEST_MODULE_DIR = $candidateModules
+                  $env:MANAGED_TEST_CURRENT_VERSION = "0.1.11"
+                  $env:MANAGED_TEST_CANDIDATE_VERSION = "0.1.12"
+                  $env:MANAGED_TEST_GITHUB_DELIVERY = "1"
+                  $env:MANAGED_TEST_DOWNLOAD_ONLY = "1"
+                  pnpm --filter element-desktop exec electron scripts/test-managed-update.mjs msi "$candidate" "$($installed[0].FullName)" "$pwd/acceptance/github-msi"
+                  if ($LASTEXITCODE -ne 0) { throw "Packaged GitHub transport acceptance failed" }
+                  "MSI updater 0.1.10 -> 0.1.11 install and app relaunch: PASS" | Set-Content acceptance/native-result.txt
 
             - uses: actions/upload-artifact@v4
               if: always()

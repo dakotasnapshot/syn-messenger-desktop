@@ -6,7 +6,7 @@ on:
             version:
                 description: Release version without a leading v
                 required: true
-                default: 0.1.10
+                default: 0.1.11
     push:
         branches:
             - syn/main
@@ -38,7 +38,7 @@ jobs:
                   } elseif ("${{ github.ref_type }}" -eq "tag") {
                     $version = "${{ github.ref_name }}" -replace '^syn-v', ''
                   } else {
-                    $version = "0.1.10"
+                    $version = "0.1.11"
                   }
                   if ($version -notmatch '^\d+\.\d+\.\d+$') {
                     throw "Invalid release version: $version"
@@ -134,48 +134,3 @@ jobs:
                   if-no-files-found: error
                   retention-days: 30
 
-            - name: Fetch exact previously published Windows installers
-              uses: actions/download-artifact@v4
-              with:
-                  name: syn-messenger-windows-unsigned-0.1.9
-                  path: acceptance/previous
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  run-id: 42017041651
-
-            - name: Native MSI updater acceptance
-              shell: pwsh
-              timeout-minutes: 10
-              run: |
-                  $ErrorActionPreference = "Stop"
-                  New-Item -ItemType Directory -Force acceptance | Out-Null
-                  $old = (Resolve-Path "acceptance/previous/Syndicate 0.1.9.msi").Path
-                  if ((Get-FileHash $old).Hash.ToLower() -ne "4942056767a0e31f35b82255aaa3bc964c7d9f6459cdf418c790c973f1f09844") { throw "Previous published MSI hash mismatch" }
-                  Copy-Item $old acceptance/previous.msi
-                  $previous = (Resolve-Path acceptance/previous.msi).Path
-                  $p = Start-Process msiexec.exe -ArgumentList "/i `"$previous`" /qn /norestart" -Wait -PassThru
-                  if ($p.ExitCode -notin @(0,3010)) { throw "Previous MSI failed: $($p.ExitCode)" }
-                  $installed = @(Get-ChildItem "$env:ProgramFiles/Syndicate" -Filter Syndicate.exe -Recurse)
-                  if ($installed.Count -ne 1) { throw "Expected one MSI app executable" }
-                  $candidate = (Resolve-Path "apps/desktop/dist/Syndicate $env:VERSION.msi").Path
-                  $testRoot = "$pwd/acceptance/msi"
-                  pnpm --filter element-desktop exec electron scripts/test-managed-update.mjs msi "$candidate" "$($installed[0].FullName)" "$testRoot" 2>&1 | Tee-Object -FilePath acceptance/msi-harness.log
-                  if ($LASTEXITCODE -ne 0) { throw "MSI updater harness failed" }
-                  if (-not (Test-Path "$testRoot/updater-result.json")) { throw "Missing MSI updater receipt" }
-                  $renderer = Join-Path $installed[0].DirectoryName "resources/webapp.asar"
-                  $expected = (Get-FileHash apps/desktop/webapp.asar).Hash
-                  for ($i=0; $i -lt 120; $i++) {
-                    if ((Test-Path $renderer) -and (Get-FileHash $renderer).Hash -eq $expected) { break }
-                    Start-Sleep -Seconds 1
-                  }
-                  if ((Get-FileHash $renderer).Hash -ne $expected) { throw "Installed MSI renderer mismatch" }
-                  "MSI updater 0.1.9 -> 0.1.10: PASS" | Set-Content acceptance/native-result.txt
-
-            - uses: actions/upload-artifact@v4
-              if: always()
-              with:
-                  name: syndicate-windows-updater-acceptance
-                  path: |
-                      acceptance/**/updater-result.json
-                      acceptance/native-result.txt
-                      acceptance/msi-harness.log
-                  if-no-files-found: warn

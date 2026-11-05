@@ -6,7 +6,7 @@ on:
             version:
                 description: Release version without a leading v
                 required: true
-                default: 0.1.10
+                default: 0.1.11
     push:
         branches:
             - syn/main
@@ -21,7 +21,7 @@ jobs:
         timeout-minutes: 40
         env:
             VARIANT_PATH: syn/release/build.json
-            VERSION: ${{ inputs.version || '0.1.10' }}
+            VERSION: ${{ inputs.version || '0.1.11' }}
         steps:
             - uses: actions/checkout@v4
 
@@ -87,51 +87,3 @@ jobs:
                   if-no-files-found: error
                   retention-days: 30
 
-            - name: Fetch exact previously published Linux installers
-              uses: actions/download-artifact@v4
-              with:
-                  name: syndicate-linux-0.1.9
-                  path: acceptance/previous
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  run-id: 42019953709
-
-            - name: Native Debian and portable updater acceptance
-              shell: bash
-              timeout-minutes: 10
-              run: |
-                  set -euo pipefail
-                  mkdir -p acceptance
-                  test "$(sha256sum acceptance/previous/syn-messenger_0.1.9_amd64.deb | cut -d' ' -f1)" = "4cfce0f050797b4905403026ac96ca56d4f111553458753434f5ff4f63dfeac6"
-                  cp acceptance/previous/syn-messenger_0.1.9_amd64.deb acceptance/previous.deb
-                  sudo dpkg --install acceptance/previous.deb
-                  previous=$(dpkg -L syn-messenger | sed -n '\|^/opt/.*/syn-messenger$|p' | head -1)
-                  test -x "$previous"
-                  candidate=$(realpath apps/desktop/dist/*.deb)
-                  timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs deb "$candidate" "$previous" "$PWD/acceptance/deb" 2>&1 | tee acceptance/deb-harness.log
-                  test "$(dpkg-query -W -f='${Version}' syn-messenger)" = "0.1.10"
-                  sha256sum "$(dirname "$previous")/resources/webapp.asar" apps/desktop/webapp.asar | awk '{print $1}' | uniq | wc -l | xargs test 1 -eq
-                  test "$(sha256sum acceptance/previous/syn-messenger-0.1.9.tar.gz | cut -d' ' -f1)" = "f5f49a98c4e7c943378ab4257029415c227c6f53a0949f67c14a51fb6868249a"
-                  cp acceptance/previous/syn-messenger-0.1.9.tar.gz acceptance/previous.tar.gz
-                  tar -xzf acceptance/previous.tar.gz -C acceptance
-                  portable="$PWD/acceptance/syn-messenger-0.1.9"
-                  archive=$(realpath apps/desktop/dist/*.tar.gz)
-                  timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs tar.gz "$archive" "$portable/syn-messenger" "$PWD/acceptance/portable" 2>&1 | tee acceptance/portable-harness.log
-                  expected=$(sha256sum apps/desktop/webapp.asar | cut -d' ' -f1)
-                  for i in $(seq 1 30); do
-                    actual=$(sha256sum "$portable/resources/webapp.asar" 2>/dev/null | cut -d' ' -f1 || true)
-                    [ "$actual" != "$expected" ] || break
-                    sleep 1
-                  done
-                  test "$actual" = "$expected"
-                  test -f "$portable.previous/resources/app.asar"
-                  echo "Native DEB and tar 0.1.9 -> 0.1.10 updater installs verified" > acceptance/native-result.txt
-
-            - uses: actions/upload-artifact@v4
-              if: always()
-              with:
-                  name: syndicate-linux-updater-acceptance
-                  path: |
-                      acceptance/**/updater-result.json
-                      acceptance/native-result.txt
-                      acceptance/*-harness.log
-                  if-no-files-found: warn

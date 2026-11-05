@@ -21,7 +21,7 @@ await fs.writeFile(path.join(userData, "synthetic-profile-marker"), "preserve-me
 app.setPath("userData", userData);
 process.argv.push("--profile-dir", userData);
 Object.defineProperty(app, "isPackaged", { value: true });
-app.getVersion = () => "0.1.9";
+app.getVersion = () => process.env.MANAGED_TEST_CURRENT_VERSION || "0.1.9";
 Object.defineProperty(process, "execPath", { value: previousExecutable });
 app.relaunch = () => { /* Native installer verified externally, don't loop the harness. */ };
 
@@ -60,12 +60,31 @@ if (kind === "msi" && process.env.MANAGED_WINDOWS_DIAGNOSTICS === "1") {
 // ESM resolves Electron from the parent desktop node_modules, not a temp directory.
 await fs.symlink(fileURLToPath(new URL("../node_modules/", import.meta.url)), path.join(testRoot, "node_modules"), process.platform === "win32" ? "junction" : "dir");
 const bytes = await fs.readFile(installer);
-const release = { version: "0.1.10", platform: process.platform, arch: process.arch, kind,
+const release = { version: process.env.MANAGED_TEST_CANDIDATE_VERSION || "0.1.10", platform: process.platform, arch: process.arch, kind,
     url: `https://synmessenger.com/downloads/acceptance.${kind}`, size: bytes.length,
     sha256: createHash("sha256").update(bytes).digest("hex"), releaseNotes: "Synthetic native upgrade acceptance", releaseDate: new Date().toISOString() };
 const payload = Buffer.from(JSON.stringify(release));
 const envelope = JSON.stringify({ payload: payload.toString("base64"), signature: sign(null, payload, keys.privateKey).toString("base64") });
-global.fetch = async url => new Response(String(url).endsWith(".json") ? envelope : bytes);
+const githubDelivery = process.env.MANAGED_TEST_GITHUB_DELIVERY === "1";
+if (githubDelivery) {
+    release.url = `https://github.com/dakotasnapshot/syndicate-releases/releases/download/desktop-v${release.version}/Syndicate-${release.version}-Acceptance.${kind}`;
+}
+const signedPayload = Buffer.from(JSON.stringify(release));
+const signedEnvelope = JSON.stringify({ payload: signedPayload.toString("base64"), signature: sign(null, signedPayload, keys.privateKey).toString("base64") });
+const requests = [];
+global.fetch = async (url, options) => {
+    requests.push(String(url));
+    if (String(url).endsWith(".json")) {
+        if (githubDelivery && !String(url).startsWith("https://raw.githubusercontent.com/dakotasnapshot/syndicate-releases/main/channels/stable/")) throw new Error("Wrong discovery origin");
+        return new Response(signedEnvelope);
+    }
+    if (githubDelivery) {
+        if (options?.redirect !== "manual" || options?.credentials !== "omit") throw new Error("Unsafe redirect policy");
+        if (String(url) === release.url) return new Response(null, {status:302, headers:{location:"https://release-assets.githubusercontent.com/github-production-release-asset/acceptance/payload?token=synthetic"}});
+        if (!String(url).startsWith("https://release-assets.githubusercontent.com/github-production-release-asset/acceptance/")) throw new Error("Wrong asset origin");
+    } else if (String(url) !== release.url) throw new Error("Wrong legacy installer URL");
+    return new Response(bytes);
+};
 let downloaded = false;
 const updater = await import(pathToFileURL(path.join(moduleDir, "managed-updater.js")).href);
 global.mainWindow = { webContents: { send(event, value) {
@@ -85,6 +104,11 @@ if (!updater.managedUpdateFeedUrl()?.endsWith(`/${kind}.json`)) throw new Error(
 await updater.checkManagedUpdates();
 console.log("Native acceptance: candidate authenticated and downloaded");
 if (!downloaded) throw new Error("No downloaded update was announced");
+if (process.env.MANAGED_TEST_DOWNLOAD_ONLY === "1") {
+    if (!githubDelivery || requests.length !== 3) throw new Error("GitHub discovery/CDN path not exercised");
+    await fs.writeFile(path.join(testRoot, "updater-result.json"), JSON.stringify({kind, downloaded, requests, version:release.version, verifiedInstallerSHA256:release.sha256, downloadOnly:true}, null, 2));
+    quit(); return;
+}
 console.log("Native acceptance: invoking installer");
 await updater.installManagedUpdate();
 console.log("Native acceptance: installer invocation returned");

@@ -1,0 +1,20 @@
+name: Syndicate bridge release gates
+on:
+    workflow_dispatch:
+        inputs:
+            linux_run_id:
+                required: true
+                type: string
+            windows_run_id:
+                required: true
+                type: string
+permissions:
+    contents: read
+    actions: read
+jobs:
+    bridge:
+        uses: ./.github/workflows/syn-managed-acceptance.yml
+        with:
+            linux_run_id: ${{ inputs.linux_run_id }}
+            windows_run_id: ${{ inputs.windows_run_id }}
+        secrets: inherit
