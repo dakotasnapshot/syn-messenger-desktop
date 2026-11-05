@@ -1,5 +1,7 @@
 # SYN Messenger Desktop
 
+Maintained personally by [Dakota Cole (@dakotasnapshot)](https://github.com/dakotasnapshot).
+
 SYN Messenger Desktop is the community-maintained desktop client for
 [SYN Messenger](https://synmessenger.com), available for macOS, Windows, and
 Linux. It is a branded fork of Element Web/Desktop and remains licensed under

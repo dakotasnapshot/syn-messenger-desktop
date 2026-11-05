@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /*
-Copyright 2026 Hawthorn LLC
+Copyright 2026 Dakota Cole
 SPDX-License-Identifier: AGPL-3.0-only
 */
 
