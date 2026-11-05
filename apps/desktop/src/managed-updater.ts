@@ -56,13 +56,17 @@ export async function startManagedUpdates(): Promise<boolean> {
 
 export function managedUpdatesActive(): boolean { return kind !== undefined; }
 
+export function managedUpdateFeedUrl(): string | undefined {
+    return kind ? `${MANAGED_UPDATE_ORIGIN}/desktop/update/managed/${process.platform}/${process.arch}/${kind}.json` : undefined;
+}
+
 export async function checkManagedUpdates(): Promise<void> {
     if (!kind || busy || installing) return;
     if (pending) { announce(); return; }
     busy = true;
     let partial: string | undefined;
     try {
-        const url = `${MANAGED_UPDATE_ORIGIN}/desktop/update/managed/${process.platform}/${process.arch}/${kind}.json`;
+        const url = managedUpdateFeedUrl()!;
         const res = await fetch(url, { redirect: "error", cache: "no-store", signal: AbortSignal.timeout(30_000) });
         if (!res.ok) throw new Error(`Update service returned HTTP ${res.status}`);
         // Bound the manifest before parsing rather than trusting Content-Length.

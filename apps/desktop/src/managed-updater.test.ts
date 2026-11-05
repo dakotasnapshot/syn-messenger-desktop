@@ -45,6 +45,7 @@ beforeEach(async () => {
 });
 afterEach(async () => { vi.unstubAllGlobals(); await fs.rm(mocks.data, { recursive: true, force: true }); });
 it("downloads in the background and installs the exact Debian file via explicit argv", async () => {
+    expect(updater.managedUpdateFeedUrl()).toBe("https://synmessenger.com/desktop/update/managed/linux/x64/deb.json");
     await updater.checkManagedUpdates();
     expect(mocks.send).toHaveBeenCalledWith("update-downloaded", expect.objectContaining({ releaseName: "0.1.10" }));
     await updater.installManagedUpdate();
@@ -83,7 +84,9 @@ it("uses Windows Installer elevation for MSI without switching profiles or using
     vi.stubGlobal("process", { ...realProcess, platform: "win32", arch: "x64", execPath: "C:\\Program Files\\Syndicate\\Syndicate.exe" });
     updater = await import("./managed-updater.js");
     mocks.release.kind = "msi"; mocks.release.platform = "win32"; mocks.release.url = "https://synmessenger.com/downloads/test.msi";
-    await updater.startManagedUpdates(); await updater.checkManagedUpdates(); await updater.installManagedUpdate();
+    await updater.startManagedUpdates();
+    expect(updater.managedUpdateFeedUrl()).toBe("https://synmessenger.com/desktop/update/managed/win32/x64/msi.json");
+    await updater.checkManagedUpdates(); await updater.installManagedUpdate();
     const call = mocks.spawn.mock.calls.find(c => String(c[0]).endsWith("cmd.exe"));
     expect(call).toBeDefined();
     const script = Buffer.from(call![1][3].match(/-EncodedCommand ([A-Za-z0-9+/=]+)/)[1], "base64").toString("utf16le");

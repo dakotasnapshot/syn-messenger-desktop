@@ -81,6 +81,7 @@ app.quit = () => {
     }).catch(error => { console.error(error); app.exit(1); });
 };
 await updater.startManagedUpdates();
+if (!updater.managedUpdateFeedUrl()?.endsWith(`/${kind}.json`)) throw new Error("In-app update capability not exposed");
 await updater.checkManagedUpdates();
 console.log("Native acceptance: candidate authenticated and downloaded");
 if (!downloaded) throw new Error("No downloaded update was announced");
