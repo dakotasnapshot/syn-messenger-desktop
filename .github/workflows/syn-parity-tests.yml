@@ -2,15 +2,22 @@ name: Syndicate desktop parity tests
 
 on:
     workflow_dispatch:
+        inputs:
+            windows_run_id:
+                description: Optional successful Windows artifact run to test an upgrade from 0.1.5
+                required: false
+                type: string
     push:
         branches:
             - syn/main
 
 permissions:
     contents: read
+    actions: read
 
 jobs:
     encrypted-gif:
+        if: ${{ !inputs.windows_run_id }}
         runs-on: ubuntu-24.04
         env:
             NX_DAEMON: "false"
@@ -42,4 +49,49 @@ jobs:
                   path: |
                       apps/web/playwright/test-results/
                       apps/web/playwright/html-report/
+                  retention-days: 14
+
+    windows-upgrade:
+        if: ${{ inputs.windows_run_id != '' }}
+        runs-on: windows-latest
+        steps:
+            - uses: actions/download-artifact@v4
+              with:
+                  name: syn-messenger-windows-unsigned-0.1.9
+                  path: candidate
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  run-id: ${{ inputs.windows_run_id }}
+            - name: Install published 0.1.5 and apply candidate Squirrel update
+              shell: pwsh
+              run: |
+                  $ErrorActionPreference = "Stop"
+                  Invoke-WebRequest "https://synmessenger.com/downloads/Syndicate-Setup-0.1.5-Windows-x64.exe" -OutFile previous.exe
+                  $install = Start-Process -FilePath "$pwd/previous.exe" -ArgumentList "--silent" -PassThru -Wait
+                  if ($install.ExitCode -ne 0) { throw "Previous installer failed: $($install.ExitCode)" }
+                  $updaters = @(Get-ChildItem $env:LOCALAPPDATA -Filter Update.exe -Recurse -ErrorAction SilentlyContinue)
+                  if ($updaters.Count -ne 1) { throw "Expected one installed Squirrel updater, found $($updaters.Count)" }
+                  $updater = $updaters[0]
+                  $appRoot = $updater.DirectoryName
+                  if (-not (Test-Path "$appRoot/app-0.1.5")) { throw "Previous version was not installed" }
+                  Get-Process | Where-Object { $_.Path -like "$appRoot/*" -and $_.Id -ne $PID } | Stop-Process -Force
+                  $candidate = (Resolve-Path candidate).Path
+                  $update = Start-Process -FilePath $updater.FullName -ArgumentList "--update=`"$candidate`"" -PassThru -Wait
+                  if ($update.ExitCode -ne 0) { throw "Squirrel upgrade failed: $($update.ExitCode)" }
+                  $installed = "$appRoot/app-0.1.9/resources/webapp.asar"
+                  if (-not (Test-Path $installed)) { throw "New renderer not installed" }
+                  $package = @(Get-ChildItem candidate -Filter "*-full.nupkg")
+                  if ($package.Count -ne 1) { throw "Expected one full NuGet package" }
+                  Add-Type -AssemblyName System.IO.Compression.FileSystem
+                  [System.IO.Compression.ZipFile]::ExtractToDirectory($package[0].FullName, "$pwd/expanded")
+                  $source = @(Get-ChildItem expanded -Filter webapp.asar -Recurse)
+                  if ($source.Count -ne 1) { throw "Expected one packaged renderer" }
+                  if ((Get-FileHash $source[0].FullName).Hash -ne (Get-FileHash $installed).Hash) { throw "Installed renderer differs from release candidate" }
+                  "Squirrel upgrade from published 0.1.5 to 0.1.9: PASS" | Set-Content upgrade-result.txt
+            - uses: actions/upload-artifact@v4
+              if: always()
+              with:
+                  name: syndicate-windows-upgrade-result
+                  path: |
+                      upgrade-result.txt
+                      ~/AppData/Local/SquirrelTemp/SquirrelSetup.log
                   retention-days: 14
