@@ -19,6 +19,7 @@ await fs.mkdir(testRoot, { recursive: true });
 const userData = path.join(testRoot, "profile"); await fs.mkdir(userData, { recursive: true });
 await fs.writeFile(path.join(userData, "synthetic-profile-marker"), "preserve-me");
 app.setPath("userData", userData);
+process.argv.push("--profile-dir", userData);
 Object.defineProperty(app, "isPackaged", { value: true });
 app.getVersion = () => "0.1.9";
 Object.defineProperty(process, "execPath", { value: previousExecutable });

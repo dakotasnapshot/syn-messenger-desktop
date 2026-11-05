@@ -179,6 +179,7 @@ jobs:
                   if ($p.ExitCode -notin @(0,3010)) { throw "Previous MSI failed: $($p.ExitCode)" }
                   $installed = @(Get-ChildItem "$env:ProgramFiles/Syndicate" -Filter Syndicate.exe -Recurse)
                   if ($installed.Count -ne 1) { throw "Expected one MSI app executable" }
+                  Get-Process -Name Syndicate -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $installed[0].FullName } | Stop-Process -Force
                   $candidate = (Resolve-Path "apps/desktop/dist/Syndicate $env:VERSION.msi").Path
                   $testRoot = "$pwd/acceptance/msi"
                   pnpm --filter element-desktop exec electron scripts/test-managed-update.mjs msi "$candidate" "$($installed[0].FullName)" "$testRoot" 2>&1 | Tee-Object -FilePath acceptance/msi-harness.log
@@ -191,7 +192,15 @@ jobs:
                     Start-Sleep -Seconds 1
                   }
                   if ((Get-FileHash $renderer).Hash -ne $expected) { throw "Installed MSI renderer mismatch" }
-                  "MSI updater 0.1.9 -> 0.1.10: PASS" | Set-Content acceptance/native-result.txt
+                  $running = @()
+                  for ($i=0; $i -lt 30; $i++) {
+                    $running = @(Get-Process -Name Syndicate -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $installed[0].FullName })
+                    if ($running.Count -gt 0) { break }
+                    Start-Sleep -Seconds 1
+                  }
+                  if ($running.Count -eq 0) { throw "Updated MSI application did not relaunch" }
+                  if ((Get-Content "$testRoot/profile/synthetic-profile-marker" -Raw) -ne "preserve-me") { throw "Profile marker changed after restart" }
+                  "MSI updater 0.1.9 -> 0.1.10 install and app relaunch: PASS" | Set-Content acceptance/native-result.txt
 
             - uses: actions/upload-artifact@v4
               if: always()
