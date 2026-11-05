@@ -68,7 +68,8 @@ jobs:
               run: |
                   $ErrorActionPreference = "Stop"
                   Invoke-WebRequest "https://synmessenger.com/downloads/Syndicate-Setup-0.1.5-Windows-x64.exe" -OutFile previous.exe
-                  $install = Start-Process -FilePath "$pwd/previous.exe" -ArgumentList "--silent" -PassThru -Wait
+                  $install = Start-Process -FilePath "$pwd/previous.exe" -ArgumentList "--silent" -PassThru
+                  if (-not $install.WaitForExit(180000)) { throw "Previous installer timed out" }
                   if ($install.ExitCode -ne 0) { throw "Previous installer failed: $($install.ExitCode)" }
                   $updaters = @(Get-ChildItem $env:LOCALAPPDATA -Filter Update.exe -Recurse -ErrorAction SilentlyContinue | Where-Object { Test-Path "$($_.DirectoryName)/app-0.1.5" })
                   if ($updaters.Count -ne 1) { throw "Expected one installed Squirrel updater, found $($updaters.Count)" }
@@ -77,7 +78,8 @@ jobs:
                   if (-not (Test-Path "$appRoot/app-0.1.5")) { throw "Previous version was not installed" }
                   Get-Process | Where-Object { $_.Path -like "$appRoot/*" -and $_.Id -ne $PID } | Stop-Process -Force
                   $candidate = (Resolve-Path candidate).Path
-                  $update = Start-Process -FilePath $updater.FullName -ArgumentList "--update=`"$candidate`"" -PassThru -Wait
+                  $update = Start-Process -FilePath $updater.FullName -ArgumentList "--update=`"$candidate`"" -PassThru
+                  if (-not $update.WaitForExit(180000)) { throw "Squirrel update timed out" }
                   if ($update.ExitCode -ne 0) { throw "Squirrel upgrade failed: $($update.ExitCode)" }
                   $installed = "$appRoot/app-0.1.9/resources/webapp.asar"
                   if (-not (Test-Path $installed)) { throw "New renderer not installed" }
