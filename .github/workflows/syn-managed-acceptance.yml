@@ -79,6 +79,15 @@ jobs:
                   done
                   test "$actual" = "$expected"
                   test -f "$portable.previous/resources/app.asar"
+                  # Repeat the portable update to prove its retained rollback set
+                  # is rotated instead of blocking all subsequent updates.
+                  timeout 180s xvfb-run -a pnpm --filter element-desktop exec electron --no-sandbox scripts/test-managed-update.mjs tar.gz "$archive" "$portable/syn-messenger" "$PWD/acceptance/portable-repeat" 2>&1 | tee acceptance/portable-repeat-harness.log
+                  for i in $(seq 1 30); do
+                    previous=$(sha256sum "$portable.previous/resources/webapp.asar" | cut -d' ' -f1)
+                    [ "$previous" != "$expected" ] || break
+                    sleep 1
+                  done
+                  test "$previous" = "$expected"
                   echo "Native DEB and tar 0.1.9 -> 0.1.10 updater installs verified" > acceptance/native-result.txt
 
             - uses: actions/upload-artifact@v4
