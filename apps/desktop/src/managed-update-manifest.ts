@@ -27,8 +27,8 @@ export function newerVersion(candidate: string, current: string): boolean {
     if (!valid.test(candidate) || !valid.test(current)) return false;
     const a = candidate.split(".").map(Number);
     const b = current.split(".").map(Number);
+    if (![...a, ...b].every(Number.isSafeInteger)) return false;
     for (let i = 0; i < 3; i++) {
-        if (!Number.isSafeInteger(a[i]) || !Number.isSafeInteger(b[i])) return false;
         if (a[i] !== b[i]) return a[i] > b[i];
     }
     return false;

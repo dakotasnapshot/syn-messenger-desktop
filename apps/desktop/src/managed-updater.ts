@@ -125,10 +125,26 @@ export async function installManagedUpdate(): Promise<void> {
             // an encoded script avoids cmd.exe interpretation of profile paths.
             const quote = (s: string): string => "'" + s.replace(/'/g, "''") + "'";
             const args = `/i "${file}" /passive /norestart`;
-            const script = `$ErrorActionPreference='Stop'; $p=Start-Process -FilePath "$env:WINDIR\\System32\\msiexec.exe" -ArgumentList ${quote(args)} -Verb RunAs -PassThru -Wait; if ($p.ExitCode -notin @(0,3010)) { exit $p.ExitCode }`;
-            // MSI handles Restart Manager; keep app alive on cancellation/failure.
-            await run("powershell.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")], { timeout: 30 * 60_000 });
-            app.relaunch(); global.appQuitting = true; app.quit();
+            const executable = quote(process.execPath);
+            const launchArgs = process.argv.slice(1).map(s => `"${s.replace(/"/g, '\\"')}"`).join(" ");
+            const launch = `Start-Process -FilePath ${executable}${launchArgs ? ` -ArgumentList ${quote(launchArgs)}` : ""}`;
+            const log = quote(path.join(path.dirname(file), "install.log"));
+            // An unprivileged detached helper survives Restart Manager closing
+            // the old app. It launches the replacement without administrator rights.
+            const script = `$ErrorActionPreference='Stop'; $p=Start-Process -FilePath "$env:WINDIR\\System32\\msiexec.exe" -ArgumentList ${quote(args)} -Verb RunAs -PassThru; [Console]::Out.WriteLine('SYNDICATE_INSTALL_STARTED'); $p.WaitForExit(); Set-Content -LiteralPath ${log} -Value ("MSI exit: " + $p.ExitCode); Wait-Process -Id ${process.pid} -Timeout 120 -ErrorAction SilentlyContinue; ${launch}`;
+            const child = spawn("powershell.exe", ["-NoProfile", "-NonInteractive", "-EncodedCommand", Buffer.from(script, "utf16le").toString("base64")], { detached: true, stdio: ["ignore", "pipe", "pipe"] });
+            await new Promise<void>((resolve, reject) => {
+                let output = "";
+                child.once("error", reject);
+                child.once("exit", code => { if (!output.includes("SYNDICATE_INSTALL_STARTED")) reject(new Error(`Windows installer authorization failed (${code})`)); });
+                child.stdout!.on("data", chunk => {
+                    output += String(chunk);
+                    if (output.includes("SYNDICATE_INSTALL_STARTED")) resolve();
+                });
+                // Consume stderr so authorization cancellation cannot fill a pipe.
+                child.stderr!.on("data", () => undefined);
+            });
+            child.unref(); global.appQuitting = true; app.quit();
         } else if (kind === "deb") {
             // Direct argv, no shell and no broad apt-get repair/unauthenticated flags.
             // Polkit prompts on interactive desktops; cancellation leaves app running.

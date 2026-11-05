@@ -5,7 +5,9 @@ import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { createHash } from "node:crypto";
-const mocks = vi.hoisted(() => ({ send: vi.fn(), quit: vi.fn(), relaunch: vi.fn(), run: vi.fn(), data: "", release: {} as Record<string, unknown> }));
+import { EventEmitter } from "node:events";
+import { PassThrough } from "node:stream";
+const mocks = vi.hoisted(() => ({ send: vi.fn(), quit: vi.fn(), relaunch: vi.fn(), run: vi.fn(), spawn: vi.fn(), data: "", release: {} as Record<string, unknown> }));
 vi.mock("electron", () => ({ app: { isPackaged: true, getVersion: () => "0.1.9", getPath: () => mocks.data, quit: mocks.quit, relaunch: mocks.relaunch } }));
 vi.mock("node:child_process", async importOriginal => {
     const actual = await importOriginal<typeof import("node:child_process")>();
@@ -13,7 +15,7 @@ vi.mock("node:child_process", async importOriginal => {
     Object.defineProperty(execFile, Symbol.for("nodejs.util.promisify.custom"), { value: (...args: unknown[]) => new Promise((resolve, reject) => {
         mocks.run(...args, (error: Error | null, stdout: string, stderr: string) => error ? reject(error) : resolve({ stdout, stderr }));
     }) });
-    return { ...actual, execFile };
+    return { ...actual, execFile, spawn: (...args: unknown[]) => mocks.spawn(...args) };
 });
 vi.mock("./managed-update-manifest.js", async importOriginal => {
     const actual = await importOriginal<typeof import("./managed-update-manifest.js")>();
@@ -24,6 +26,11 @@ let updater: typeof import("./managed-updater.js");
 const payload = Buffer.from("synthetic installer - not executable");
 beforeEach(async () => {
     vi.resetModules(); vi.clearAllMocks();
+    mocks.spawn.mockImplementation(() => {
+        const child = Object.assign(new EventEmitter(), { stdout: new PassThrough(), stderr: new PassThrough(), unref: vi.fn() });
+        queueMicrotask(() => child.stdout.write("SYNDICATE_INSTALL_STARTED\n"));
+        return child;
+    });
     mocks.data = await fs.mkdtemp(path.join(os.tmpdir(), "syn-updater-test-"));
     mocks.release = { version: "0.1.10", platform: "linux", arch: "x64", kind: "deb", url: "https://synmessenger.com/downloads/test.deb", size: payload.length, sha256: createHash("sha256").update(payload).digest("hex"), releaseNotes: "test", releaseDate: "2026-11-05T12:00:00Z" };
     mocks.run.mockImplementation((cmd, args, optionsOrCallback, maybeCallback) => {
@@ -70,4 +77,16 @@ it("does not download an older or equal release", async () => {
     mocks.release.version = "0.1.9";
     await updater.checkManagedUpdates(); expect(fetch).toHaveBeenCalledTimes(1);
     expect(mocks.send).toHaveBeenCalledWith("check_updates", false);
+});
+it("uses Windows Installer elevation for MSI without switching profiles or using Squirrel", async () => {
+    vi.resetModules();
+    vi.stubGlobal("process", { ...realProcess, platform: "win32", arch: "x64", execPath: "C:\\Program Files\\Syndicate\\Syndicate.exe" });
+    updater = await import("./managed-updater.js");
+    mocks.release.kind = "msi"; mocks.release.platform = "win32"; mocks.release.url = "https://synmessenger.com/downloads/test.msi";
+    await updater.startManagedUpdates(); await updater.checkManagedUpdates(); await updater.installManagedUpdate();
+    const call = mocks.spawn.mock.calls.find(c => c[0] === "powershell.exe");
+    expect(call).toBeDefined();
+    const script = Buffer.from(call![1][3], "base64").toString("utf16le");
+    expect(script).toContain("msiexec.exe"); expect(script).toContain("-Verb RunAs");
+    expect(script).toContain("/passive /norestart"); expect(mocks.quit).toHaveBeenCalledOnce();
 });

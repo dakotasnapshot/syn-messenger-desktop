@@ -91,7 +91,12 @@ jobs:
                   if ($LASTEXITCODE -ne 0) { throw "MSI updater harness failed" }
                   if (-not (Test-Path "$testRoot/updater-result.json")) { throw "Missing MSI updater receipt" }
                   $renderer = Join-Path $installed[0].DirectoryName "resources/webapp.asar"
-                  if ((Get-FileHash $renderer).Hash -ne (Get-FileHash apps/desktop/webapp.asar).Hash) { throw "Installed MSI renderer mismatch" }
+                  $expected = (Get-FileHash apps/desktop/webapp.asar).Hash
+                  for ($i=0; $i -lt 120; $i++) {
+                    if ((Test-Path $renderer) -and (Get-FileHash $renderer).Hash -eq $expected) { break }
+                    Start-Sleep -Seconds 1
+                  }
+                  if ((Get-FileHash $renderer).Hash -ne $expected) { throw "Installed MSI renderer mismatch" }
                   "MSI updater 0.1.9 -> 0.1.10: PASS" | Set-Content acceptance/native-result.txt
 
             - uses: actions/upload-artifact@v4
