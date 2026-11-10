@@ -27,6 +27,7 @@ import { PushProcessor } from "matrix-js-sdk/src/pushprocessor";
 import type BasePlatform from "../../src/BasePlatform";
 import Notifier, { NOTIFICATION_SOUND_THROTTLE_MS } from "../../src/Notifier";
 import SettingsStore from "../../src/settings/SettingsStore";
+import { defaultSchedule, SCHEDULE_EVENT_TYPE } from "../../src/utils/SyndicateNotificationSchedule";
 import ToastStore from "../../src/stores/ToastStore";
 import {
     createLocalNotificationSettingsIfNeeded,
@@ -176,6 +177,34 @@ describe("Notifier", () => {
         // @ts-ignore
         notifier.backgroundAudio.audioContext = mockAudioContext;
         context._client = mockClient;
+    });
+
+    describe("Syndicate local schedule enforcement", () => {
+        const mute = (): void => {
+            testRoom.addAccountData([
+                new MatrixEvent({
+                    type: SCHEDULE_EVENT_TYPE,
+                    content: { ...defaultSchedule(), override: "mute" },
+                }),
+            ]);
+        };
+        it("suppresses OS banners before invoking the platform", () => {
+            mute();
+            notifier.displayPopupNotification(testEvent, testRoom);
+            expect(MockPlatform.displayNotification).not.toHaveBeenCalled();
+        });
+        it("suppresses the direct audio path", async () => {
+            mute();
+            const sound = jest.spyOn(notifier, "getSoundForRoom");
+            await notifier.playAudioNotification(testEvent, testRoom);
+            expect(sound).not.toHaveBeenCalled();
+        });
+        it("gates custom handling and platform attention before evaluating push actions", () => {
+            mute();
+            notifier.evaluateEvent(testEvent);
+            expect(mockClient.getPushActionsForEvent).not.toHaveBeenCalled();
+            expect(MockPlatform.loudNotification).not.toHaveBeenCalled();
+        });
     });
 
     describe("triggering notification from events", () => {

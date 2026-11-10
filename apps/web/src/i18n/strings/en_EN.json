@@ -4124,5 +4124,25 @@
             "userInputs": "There should not be any personal or page related data.",
             "wordByItself": "A word by itself is easy to guess"
         }
+    },
+    "syndicate_schedule": {
+        "title": "Scheduled notifications",
+        "enabled": "Use notification schedule",
+        "start": "Notify from",
+        "end": "Notify until",
+        "timezone": "Time zone",
+        "save": "Save schedule",
+        "saved": "Schedule saved and synced to your Matrix account.",
+        "retry": "Retry",
+        "description": "Only Syndicate notifications are silenced outside these hours. Your schedule and override sync to your other Syndicate devices. Normal Matrix notification preferences still apply inside the window. Other Matrix apps are unaffected.",
+        "unavailable": "Room settings are not available yet. Reconnect and try again.",
+        "save_error": "Could not save the schedule. Check the time zone and your connection, then try again.",
+        "override": "Schedule override",
+        "follow": "Follow schedule",
+        "force_mute": "Keep muted in Syndicate until I resume",
+        "force_normal": "Use normal notifications until I resume",
+        "remote_changed": "This schedule changed on another device. Your draft is preserved; saving replaces the synced setting. Reload to discard your draft.",
+        "reload": "Reload synced schedule",
+        "invalid": "Choose at least one day, different start and end times, and a valid time zone."
     }
 }

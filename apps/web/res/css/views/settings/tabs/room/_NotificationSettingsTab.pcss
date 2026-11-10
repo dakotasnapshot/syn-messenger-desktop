@@ -36,3 +36,30 @@ Please see LICENSE files in the repository root for full details.
 input[type="file"].mx_NotificationSound_soundUpload {
     display: none;
 }
+
+.mx_SyndicateNotificationSchedule {
+    border: 0;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    max-width: 480px;
+
+    label {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    label:has(input[type="checkbox"]) {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .mx_SyndicateNotificationSchedule_days {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+}

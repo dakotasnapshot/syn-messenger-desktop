@@ -27,6 +27,7 @@ import { logger } from "matrix-js-sdk/src/logger";
 import { type PermissionChanged as PermissionChangedEvent } from "@matrix-org/analytics-events/types/typescript/PermissionChanged";
 import { type SessionMembershipData, type IRTCNotificationContent } from "matrix-js-sdk/src/matrixrtc";
 
+import { roomScheduleMutes } from "./utils/SyndicateNotificationSchedule";
 import SdkConfig from "./SdkConfig";
 import PlatformPeg from "./PlatformPeg";
 import * as TextForEvent from "./TextForEvent";
@@ -223,7 +224,7 @@ export default class Notifier extends TypedEventEmitter<keyof EmittedEvents, Emi
             return;
         }
 
-        if (localNotificationsAreSilenced(cli)) {
+        if (localNotificationsAreSilenced(cli) || roomScheduleMutes(cli, room.roomId)) {
             return;
         }
 
@@ -309,7 +310,7 @@ export default class Notifier extends TypedEventEmitter<keyof EmittedEvents, Emi
     // XXX: Exported for tests
     public async playAudioNotification(ev: MatrixEvent, room: Room): Promise<void> {
         const cli = this.sdkContext.client;
-        if (!cli || localNotificationsAreSilenced(cli)) {
+        if (!cli || localNotificationsAreSilenced(cli) || roomScheduleMutes(cli, room.roomId)) {
             return;
         }
 
@@ -562,6 +563,8 @@ export default class Notifier extends TypedEventEmitter<keyof EmittedEvents, Emi
             // Seen in the Playwright lazy-loading test.
             return;
         }
+
+        if (roomScheduleMutes(this.sdkContext.client, roomId)) return;
 
         const actions = this.sdkContext.client.getPushActionsForEvent(ev);
 

@@ -27,6 +27,8 @@ import { SettingsSection } from "../../shared/SettingsSection";
 import { SettingsSubsection } from "../../shared/SettingsSubsection";
 import { SDKContextClass } from "../../../../../contexts/SDKContextClass.ts";
 
+import SyndicateNotificationSchedule from "./SyndicateNotificationSchedule";
+
 interface IProps {
     roomId: string;
     closeSettingsFn(): void;
@@ -164,6 +166,7 @@ export default class NotificationsSettingsTab extends React.Component<IProps, IS
         return (
             <SettingsTab>
                 <SettingsSection heading={_t("notifications|enable_prompt_toast_title")}>
+                    <SyndicateNotificationSchedule roomId={this.props.roomId} />
                     <div className="mx_NotificationSettingsTab_notificationsSection">
                         <StyledRadioGroup
                             name="roomNotificationSetting"
