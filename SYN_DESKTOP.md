@@ -17,6 +17,10 @@ Encrypted rooms work in 0.1.0. Local full-text search inside encrypted message h
 
 Watch transport, iOS notification-service rendering, Apple communication notifications, and SwiftUI wallpaper storage are platform-specific and are not copied into Electron.
 
+## Current macOS release
+
+macOS [0.1.12](docs/SYNDICATE_MACOS_0.1.12.md) adds scheduled room notifications and explicit manual overrides through standard Matrix account data, with no custom homeserver module. The signed/notarized universal DMG and native updater ZIP are published. Windows/Linux remain on their separate 0.1.11 bridge release; mobile and Loader are unchanged. See the release runbook for exact source, checksums, native acceptance and custom CLI profile restart limits.
+
 ## Roadmap
 
 ### Cross-platform GIF picker parity
