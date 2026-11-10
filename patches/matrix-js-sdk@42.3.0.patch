@@ -1,0 +1,80 @@
+diff --git a/lib/rendezvous/MSC4108SignInWithQR.d.ts b/lib/rendezvous/MSC4108SignInWithQR.d.ts
+--- a/lib/rendezvous/MSC4108SignInWithQR.d.ts
++++ b/lib/rendezvous/MSC4108SignInWithQR.d.ts
+@@ -2,7 +2,6 @@
+ import { type MatrixClient } from "../client.ts";
+ import { type MSC4108SecureChannel } from "./channels/MSC4108SecureChannel.ts";
+ import { type DeviceAccessTokenResponse, type ValidatedAuthMetadata } from "../oauth/index.ts";
+-import { type CryptoApi } from "../crypto-api/index.ts";
+ /**
+  * Enum representing the payload types transmissible over [MSC4108](https://github.com/matrix-org/matrix-spec-proposals/pull/4108)
+  * secure channels.
+@@ -25,7 +24,7 @@
+ export interface MSC4108Payload {
+     type: PayloadType;
+ }
+-interface SecretsPayload extends MSC4108Payload, Awaited<ReturnType<NonNullable<CryptoApi["exportSecretsBundle"]>>> {
++interface SecretsPayload extends MSC4108Payload, Record<string, unknown> {
+     type: PayloadType.Secrets;
+ }
+ /**
+diff --git a/lib/rendezvous/MSC4108SignInWithQR.js b/lib/rendezvous/MSC4108SignInWithQR.js
+--- a/lib/rendezvous/MSC4108SignInWithQR.js
++++ b/lib/rendezvous/MSC4108SignInWithQR.js
+@@ -375,13 +375,12 @@
+             if (this.channel.cancelled) {
+               throw new RendezvousError("User cancelled", MSC4108FailureReason.UserCancelled);
+             }
++            if (typeof secretsBundle !== "object" || secretsBundle === null || Array.isArray(secretsBundle)) {
++              throw new RendezvousError("Invalid exported secrets bundle", ClientRendezvousFailureReason.Unknown);
++            }
+             // send secrets
+-            await this.send(_objectSpread({
+-              type: PayloadType.Secrets
+-            }, secretsBundle));
+-            return {
+-              secrets: secretsBundle
+-            };
++            await this.send({ ...secretsBundle, type: PayloadType.Secrets });
++            return { secrets: { ...secretsBundle } };
+             // let the other side close the rendezvous session
+           }
+         } catch (err) {
+diff --git a/src/rendezvous/MSC4108SignInWithQR.ts b/src/rendezvous/MSC4108SignInWithQR.ts
+--- a/src/rendezvous/MSC4108SignInWithQR.ts
++++ b/src/rendezvous/MSC4108SignInWithQR.ts
+@@ -36,7 +36,6 @@
+     type ValidatedAuthMetadata,
+     waitForDeviceAuthorization,
+ } from "../oauth/index.ts";
+-import { type CryptoApi } from "../crypto-api/index.ts";
+ 
+ /**
+  * Enum representing the payload types transmissible over [MSC4108](https://github.com/matrix-org/matrix-spec-proposals/pull/4108)
+@@ -106,7 +105,7 @@
+     type: PayloadType.ProtocolAccepted;
+ }
+ 
+-interface SecretsPayload extends MSC4108Payload, Awaited<ReturnType<NonNullable<CryptoApi["exportSecretsBundle"]>>> {
++interface SecretsPayload extends MSC4108Payload, Record<string, unknown> {
+     type: PayloadType.Secrets;
+ }
+ 
+@@ -490,12 +489,15 @@
+                         if (this.channel.cancelled) {
+                             throw new RendezvousError("User cancelled", MSC4108FailureReason.UserCancelled);
+                         }
++                        if (typeof secretsBundle !== "object" || secretsBundle === null || Array.isArray(secretsBundle)) {
++                            throw new RendezvousError("Invalid exported secrets bundle", ClientRendezvousFailureReason.Unknown);
++                        }
+                         // send secrets
+                         await this.send<SecretsPayload>({
++                            ...secretsBundle,
+                             type: PayloadType.Secrets,
+-                            ...secretsBundle,
+                         });
+-                        return { secrets: secretsBundle };
++                        return { secrets: { ...secretsBundle } };
+                         // let the other side close the rendezvous session
+                     }
+                 } catch (err: MatrixError | unknown) {

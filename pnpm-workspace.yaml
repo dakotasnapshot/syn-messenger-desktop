@@ -95,6 +95,8 @@ allowBuilds:
     workerd: true
 
 patchedDependencies:
+    # Validate the unknown crypto export at the SDK QR-login object boundary.
+    "matrix-js-sdk@42.3.0": patches/matrix-js-sdk@42.3.0.patch
     # Workaround for missing types export
     "@vector-im/matrix-wysiwyg": patches/@vector-im__matrix-wysiwyg.patch
     # Workaround for lack of React 19 support
