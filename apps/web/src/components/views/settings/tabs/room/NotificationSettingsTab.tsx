@@ -15,6 +15,7 @@ import SettingsStore from "../../../../../settings/SettingsStore";
 import { SettingLevel } from "../../../../../settings/SettingLevel";
 import { type RoomEchoChamber } from "../../../../../stores/local-echo/RoomEchoChamber";
 import { EchoChamber } from "../../../../../stores/local-echo/EchoChamber";
+import { PROPERTY_UPDATED } from "../../../../../stores/local-echo/GenericEchoChamber";
 import MatrixClientContext from "../../../../../contexts/MatrixClientContext";
 import StyledRadioGroup from "../../../elements/StyledRadioGroup";
 import { RoomNotifState } from "../../../../../RoomNotifs";
@@ -62,6 +63,18 @@ export default class NotificationsSettingsTab extends React.Component<IProps, IS
             uploadedFile: null,
         };
     }
+
+    public componentDidMount(): void {
+        this.roomProps.on(PROPERTY_UPDATED, this.onRoomPropertyUpdated);
+    }
+
+    public componentWillUnmount(): void {
+        this.roomProps.off(PROPERTY_UPDATED, this.onRoomPropertyUpdated);
+    }
+
+    private onRoomPropertyUpdated = (): void => {
+        this.forceUpdate();
+    };
 
     private triggerUploader = async (e: ButtonEvent): Promise<void> => {
         e.stopPropagation();

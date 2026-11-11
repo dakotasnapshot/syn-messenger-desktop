@@ -34,6 +34,10 @@ import { CallEvent, type Call } from "../../models/Call";
 import { RoomListItemViewModel } from "./RoomListItemViewModel";
 import RoomListStoreV3 from "../../stores/room-list-v3/RoomListStoreV3";
 import * as tagRoomModule from "../../utils/room/tagRoom";
+import { RoomNotifState as SharedRoomNotifState } from "@element-hq/web-shared-components";
+import { EchoChamber } from "../../stores/local-echo/EchoChamber";
+import { PROPERTY_UPDATED } from "../../stores/local-echo/GenericEchoChamber";
+import { RoomNotifState } from "../../RoomNotifs";
 import { CHATS_TAG } from "../../stores/room-list-v3/section";
 
 vi.mock("./utils", () => ({
@@ -136,6 +140,21 @@ describe("RoomListItemViewModel", () => {
     });
 
     describe("Notification state", () => {
+        it("updates the room mute menu state without a new message or unread change", async () => {
+            const echo = EchoChamber.forRoom(room);
+            const volume = vi.spyOn(echo, "notificationVolume", "get").mockReturnValue(RoomNotifState.AllMessages);
+            viewModel = new RoomListItemViewModel({ room, client: matrixClient });
+            await flushPromises();
+            expect(viewModel.getSnapshot().roomNotifState).toBe(SharedRoomNotifState.AllMessages);
+            volume.mockReturnValue(RoomNotifState.Mute);
+            echo.emit(PROPERTY_UPDATED);
+            expect(viewModel.getSnapshot().roomNotifState).toBe(SharedRoomNotifState.Mute);
+            expect(viewModel.getSnapshot().notification.count).toBe(0);
+            volume.mockReturnValue(RoomNotifState.AllMessages);
+            echo.emit(PROPERTY_UPDATED);
+            expect(viewModel.getSnapshot().roomNotifState).toBe(SharedRoomNotifState.AllMessages);
+        });
+
         it("should reflect notification state", async () => {
             vi.spyOn(notificationState, "hasAnyNotificationOrActivity", "get").mockReturnValue(true);
             vi.spyOn(notificationState, "count", "get").mockReturnValue(5);

@@ -7,7 +7,7 @@ Please see LICENSE files in the repository root for full details.
 */
 
 import React from "react";
-import { render, type RenderResult, screen, within } from "jest-matrix-react";
+import { act, render, type RenderResult, screen, within } from "jest-matrix-react";
 import { type MatrixClient } from "matrix-js-sdk/src/matrix";
 import userEvent from "@testing-library/user-event";
 
@@ -16,6 +16,9 @@ import { mkStubRoom, stubClient } from "../../../../../../test-utils";
 import { MatrixClientPeg } from "../../../../../../../src/MatrixClientPeg";
 import { EchoChamber } from "../../../../../../../src/stores/local-echo/EchoChamber";
 import { type RoomEchoChamber } from "../../../../../../../src/stores/local-echo/RoomEchoChamber";
+import { PROPERTY_UPDATED } from "../../../../../../../src/stores/local-echo/GenericEchoChamber";
+import { RoomNotifState } from "../../../../../../../src/RoomNotifs";
+import MatrixClientContext from "../../../../../../../src/contexts/MatrixClientContext";
 import SettingsStore from "../../../../../../../src/settings/SettingsStore";
 import { SettingLevel } from "../../../../../../../src/settings/SettingLevel";
 
@@ -25,7 +28,11 @@ describe("NotificationSettingsTab", () => {
     let roomProps: RoomEchoChamber;
 
     const renderTab = (): RenderResult => {
-        return render(<NotificationSettingsTab roomId={roomId} closeSettingsFn={() => {}} />);
+        return render(
+            <MatrixClientContext.Provider value={cli}>
+                <NotificationSettingsTab roomId={roomId} closeSettingsFn={() => {}} />
+            </MatrixClientContext.Provider>,
+        );
     };
 
     beforeEach(() => {
@@ -39,6 +46,26 @@ describe("NotificationSettingsTab", () => {
 
     afterEach(() => {
         SettingsStore.reset();
+    });
+
+    it("updates the ordinary mute control when the shared room state changes, and unsubscribes", () => {
+        const volume = jest.spyOn(roomProps, "notificationVolume", "get").mockReturnValue(RoomNotifState.AllMessages);
+        const previousListeners = roomProps.listenerCount(PROPERTY_UPDATED);
+        const tab = renderTab();
+        expect(tab.container.querySelector('input[value="all_messages"]')).toBeChecked();
+        volume.mockReturnValue(RoomNotifState.Mute);
+        act(() => {
+            roomProps.emit(PROPERTY_UPDATED);
+        });
+        expect(tab.container.querySelector('input[value="mute"]')).toBeChecked();
+        volume.mockReturnValue(RoomNotifState.AllMessages);
+        act(() => {
+            roomProps.emit(PROPERTY_UPDATED);
+        });
+        expect(tab.container.querySelector('input[value="all_messages"]')).toBeChecked();
+        tab.unmount();
+        expect(roomProps.listenerCount(PROPERTY_UPDATED)).toBe(previousListeners);
+        volume.mockRestore();
     });
 
     it("should prevent »Settings« link click from bubbling up to radio buttons", async () => {

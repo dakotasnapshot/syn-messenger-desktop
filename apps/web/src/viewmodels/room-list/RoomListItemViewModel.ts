@@ -28,6 +28,7 @@ import SettingsStore from "../../settings/SettingsStore";
 import { NotificationLevel } from "../../stores/notifications/NotificationLevel";
 import { hasAccessToNotificationMenu, hasAccessToOptionsMenu } from "./utils";
 import { EchoChamber } from "../../stores/local-echo/EchoChamber";
+import { PROPERTY_UPDATED } from "../../stores/local-echo/GenericEchoChamber";
 import { RoomNotifState as ElementRoomNotifState } from "../../RoomNotifs";
 import { shouldShowComponent } from "../../customisations/helpers/UIComponents";
 import { UIComponent } from "../../settings/UIFeature";
@@ -97,6 +98,9 @@ export class RoomListItemViewModel
 
         this.notifState = notifState;
         this.availableSections = availableSections;
+
+        // Room mute can change from the schedule without any new unread message.
+        this.disposables.trackListener(EchoChamber.forRoom(props.room), PROPERTY_UPDATED, this.onNotificationChanged);
 
         // Subscribe to notification state changes for this room
         this.disposables.trackListener(this.notifState, NotificationStateEvents.Update, this.onNotificationChanged);
