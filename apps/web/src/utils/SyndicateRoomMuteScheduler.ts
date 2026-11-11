@@ -2,38 +2,20 @@
 Copyright 2026 Syndicate contributors.
 SPDX-License-Identifier: AGPL-3.0-only
 */
-import {
-    ClientEvent,
-    ConditionKind,
-    PushRuleActionName,
-    EventType,
-    RoomEvent,
-    PushRuleKind,
-    type MatrixClient,
-    type MatrixEvent,
-} from "matrix-js-sdk/src/matrix";
-import {
-    readSchedule,
-    roomScheduleMutes,
-    SCHEDULE_EVENT_TYPE,
-    SCHEDULE_MUTE_PREFIX,
-    scheduleMuteRuleId,
-} from "./SyndicateNotificationSchedule";
-export { SCHEDULE_MUTE_PREFIX, scheduleMuteRuleId } from "./SyndicateNotificationSchedule";
+import { ClientEvent, EventType, RoomEvent, type MatrixClient, type MatrixEvent } from "matrix-js-sdk/src/matrix";
+import { getRoomNotifsState, setRoomNotifsState, RoomNotifState } from "../RoomNotifs";
+import { readSchedule, scheduleMutes, SCHEDULE_EVENT_TYPE } from "./SyndicateNotificationSchedule";
 
-// Same standard Matrix override used by room mute, but separately owned: never
-// delete or rewrite a manual mute, room notification mode, or another app's rule.
+// Drive the ordinary room mute used by every visible notification control.
 export type EnforcementStatus = "waiting" | "muted" | "normal" | "error";
 
 export class RoomMuteScheduleController {
     private active = false;
     private activitySent?: boolean;
     private unsubscribeNativeTick?: () => void;
-    private hasServerBaseline = false;
     private dirty = false;
     private running?: Promise<void>;
     private timer?: ReturnType<typeof setTimeout>;
-    private readonly acknowledged = new Map<string, boolean>();
     private readonly statuses = new Map<string, EnforcementStatus>();
     private readonly listeners = new Set<() => void>();
 
@@ -57,11 +39,9 @@ export class RoomMuteScheduleController {
     };
     private onAccountData = (event: MatrixEvent): void => {
         if (event.getType() !== EventType.PushRules) return;
-        this.acknowledged.clear();
         void this.reconcile();
     };
     private wake = (): void => {
-        this.hasServerBaseline = false;
         void this.reconcile();
     };
     private sync = (): void => {
@@ -129,105 +109,53 @@ export class RoomMuteScheduleController {
     private async drain(): Promise<void> {
         while (this.active && this.dirty) {
             this.dirty = false;
-            // No speculative unmuting before the authenticated push-rule cache is ready.
-            let rules = this.client.pushRules?.global?.override;
-            if (!rules) continue;
-            const knownRooms = this.client.getRooms();
-            this.publishActivity(
-                knownRooms.some((room) => {
-                    const policy = readSchedule(this.client, room.roomId);
-                    return policy?.enforcement === "matrix" && (policy.enabled || policy.override === "mute");
-                }),
-            );
-            const scheduledRooms = knownRooms.filter(
-                (room) => readSchedule(this.client, room.roomId)?.enforcement === "matrix",
-            );
-            if (!scheduledRooms.length && !rules.some((rule) => rule.rule_id.startsWith(SCHEDULE_MUTE_PREFIX)))
+            if (!this.client.pushRules?.global?.override) continue;
+            const rooms = this.client.getRooms().filter((room) => {
+                const policy = readSchedule(this.client, room.roomId);
+                return (
+                    policy?.enforcement === "matrix" &&
+                    (policy.enabled || (policy.override ?? "schedule") !== "schedule")
+                );
+            });
+            this.publishActivity(rooms.length > 0);
+            if (!rooms.length) continue;
+            try {
+                // SDK refreshes its push-rule cache here, just as the room controls
+                // do. Never decide to unmute from an unhydrated/stale cache.
+                await this.client.getPushRules();
+            } catch {
+                for (const room of rooms) this.report(room.roomId, "error");
                 continue;
-            if (!this.hasServerBaseline) {
-                try {
-                    const confirmed = (await this.client.getPushRules()).global?.override;
-                    if (!confirmed) throw new Error("Matrix push rules are not ready");
-                    rules = confirmed;
-                    this.hasServerBaseline = true;
-                } catch {
-                    for (const room of scheduledRooms) this.report(room.roomId, "error");
-                    continue;
-                }
             }
-            const rooms = new Set(knownRooms.map((room) => room.roomId));
-            for (const rule of rules) {
-                if (!rule.rule_id.startsWith(SCHEDULE_MUTE_PREFIX)) continue;
-                try {
-                    rooms.add(decodeURIComponent(rule.rule_id.slice(SCHEDULE_MUTE_PREFIX.length)));
-                } catch {
-                    /* Not ours to alter. */
-                }
-            }
-            for (const roomId of rooms) {
+            for (const room of rooms) {
                 if (!this.active) return;
-                const policy = readSchedule(this.client, roomId);
-                const desired = policy?.enforcement === "matrix" && roomScheduleMutes(this.client, roomId);
-                const id = scheduleMuteRuleId(roomId);
-                const rule = rules.find((value) => value.rule_id === id);
-                const exists = this.acknowledged.get(id) ?? !!rule;
-                if (!policy) {
-                    // A room/policy may not have hydrated yet. An unknown setting
-                    // is never permission to remove an existing server-side mute.
-                    if (exists) this.report(roomId, "waiting");
-                    continue;
-                }
-                const valid =
-                    !!rule?.enabled &&
-                    rule.actions.length === 1 &&
-                    rule.actions[0] === PushRuleActionName.DontNotify &&
-                    rule.conditions?.length === 1 &&
-                    rule.conditions[0].kind === ConditionKind.EventMatch &&
-                    rule.conditions[0].key === "room_id" &&
-                    rule.conditions[0].pattern === roomId;
+                const policy = readSchedule(this.client, room.roomId);
+                if (policy?.enforcement !== "matrix") continue;
                 try {
-                    if (desired && (!exists || (!this.acknowledged.has(id) && !valid))) {
-                        await this.client.addPushRule("global", PushRuleKind.Override, id, {
-                            conditions: [{ kind: ConditionKind.EventMatch, key: "room_id", pattern: roomId }],
-                            actions: [PushRuleActionName.DontNotify],
-                        });
-                        await this.client.setPushRuleEnabled("global", PushRuleKind.Override, id, true);
-                        const confirmed = (await this.client.getPushRules()).global?.override?.find(
-                            (value) => value.rule_id === id,
+                    const desired = scheduleMutes(policy);
+                    if ((getRoomNotifsState(this.client, room.roomId) === RoomNotifState.Mute) !== desired) {
+                        await setRoomNotifsState(
+                            this.client,
+                            room.roomId,
+                            desired ? RoomNotifState.Mute : RoomNotifState.AllMessages,
+                            "schedule",
                         );
-                        if (
-                            !confirmed?.enabled ||
-                            confirmed.actions.length !== 1 ||
-                            confirmed.actions[0] !== PushRuleActionName.DontNotify ||
-                            confirmed.conditions?.length !== 1 ||
-                            confirmed.conditions[0].kind !== ConditionKind.EventMatch ||
-                            confirmed.conditions[0].key !== "room_id" ||
-                            confirmed.conditions[0].pattern !== roomId
-                        ) {
-                            throw new Error("Matrix did not confirm the scheduler mute");
-                        }
-                        this.acknowledged.set(id, true);
-                    } else if (!desired && exists) {
-                        try {
-                            await this.client.deletePushRule("global", PushRuleKind.Override, id);
-                        } catch (error) {
-                            if ((error as { errcode?: string }).errcode !== "M_NOT_FOUND") throw error;
-                        }
-                        const confirmed = (await this.client.getPushRules()).global?.override;
-                        if (!confirmed || confirmed.some((value) => value.rule_id === id)) {
-                            throw new Error("Matrix did not confirm scheduler mute removal");
-                        }
-                        this.acknowledged.set(id, false);
+                        await this.client.getPushRules();
                     }
-                    if (policy?.enforcement === "matrix" || exists) this.report(roomId, desired ? "muted" : "normal");
+                    // A manual operation may have entered the same shared queue.
+                    const latest = readSchedule(this.client, room.roomId);
+                    const expected = scheduleMutes(latest);
+                    if ((getRoomNotifsState(this.client, room.roomId) === RoomNotifState.Mute) !== expected)
+                        throw new Error("Matrix did not confirm the room mute state");
+                    this.report(room.roomId, expected ? "muted" : "normal");
                 } catch {
-                    // Retain the rule/state after failure; retry on sync/wake/minute.
-                    this.report(roomId, "error");
+                    this.report(room.roomId, "error");
                 }
             }
         }
     }
 }
+
 const controllers = new WeakMap<MatrixClient, RoomMuteScheduleController>();
 export function roomMuteScheduler(client: MatrixClient): RoomMuteScheduleController {
     let controller = controllers.get(client);

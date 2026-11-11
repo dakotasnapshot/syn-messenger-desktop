@@ -199,7 +199,7 @@ describe("Notifier", () => {
             testRoom.addAccountData([
                 new MatrixEvent({
                     type: SCHEDULE_EVENT_TYPE,
-                    content: { ...defaultSchedule(), override: "mute" },
+                    content: { ...defaultSchedule(), enforcement: "local", override: "mute" },
                 }),
             ]);
         };

@@ -1,25 +1,24 @@
-/*
-Copyright 2026 Syndicate contributors.
-SPDX-License-Identifier: AGPL-3.0-only
-*/
+/* Copyright 2026 Syndicate contributors. SPDX-License-Identifier: AGPL-3.0-only */
 import {
+    ConditionKind,
     MatrixEvent,
     Room,
     RoomEvent,
-    ConditionKind,
     PushRuleActionName,
+    PushRuleKind,
     type IPushRule,
 } from "matrix-js-sdk/src/matrix";
-import { RoomNotifState, setRoomNotifsState } from "../../../src/RoomNotifs";
+import { getRoomNotifsState, RoomNotifState, setRoomNotifsState } from "../../../src/RoomNotifs";
 import { getMockClientWithEventEmitter } from "../../test-utils";
 import {
     defaultSchedule,
+    readSchedule,
+    roomScheduleMutes,
     SCHEDULE_EVENT_TYPE,
     type NotificationSchedule,
 } from "../../../src/utils/SyndicateNotificationSchedule";
-import { RoomMuteScheduleController, scheduleMuteRuleId } from "../../../src/utils/SyndicateRoomMuteScheduler";
-
-const roomId = "!schedule:example.org";
+import { RoomMuteScheduleController } from "../../../src/utils/SyndicateRoomMuteScheduler";
+const id = "!shared:example.org";
 const policy: NotificationSchedule = {
     ...defaultSchedule(),
     enabled: true,
@@ -29,57 +28,66 @@ const policy: NotificationSchedule = {
     timezone: "America/Chicago",
 };
 const controllers: RoomMuteScheduleController[] = [];
-function setup(value: NotificationSchedule = policy, overrides: IPushRule[] = []) {
+function setup(value = policy, muted = false) {
     const client = getMockClientWithEventEmitter({
         getRooms: jest.fn(),
         getRoom: jest.fn(),
-        addPushRule: jest.fn(),
-        deletePushRule: jest.fn(),
+        isGuest: jest.fn().mockReturnValue(false),
         getRoomPushRule: jest.fn(),
         getPushRules: jest.fn(),
-        setPushRuleEnabled: jest.fn(),
+        addPushRule: jest.fn(),
+        deletePushRule: jest.fn(),
+        setRoomAccountData: jest.fn(),
     });
-    const room = new Room(roomId, client, "@synthetic:example.org");
-    room.addAccountData([new MatrixEvent({ type: SCHEDULE_EVENT_TYPE, content: value })]);
+    const room = new Room(id, client, "@synthetic:example.org");
+    const sync = (p: NotificationSchedule) => {
+        const event = new MatrixEvent({ type: SCHEDULE_EVENT_TYPE, content: p });
+        room.addAccountData([event]);
+        client.emit(RoomEvent.AccountData, event, room);
+    };
+    sync(value);
     client.getRoom.mockReturnValue(room);
     client.getRooms.mockReturnValue([room]);
-    client.pushRules = {
-        global: {
-            override: overrides,
-            room: [{ rule_id: roomId, enabled: true, default: false, actions: [PushRuleActionName.DontNotify] }],
-            content: [],
-            sender: [],
-            underride: [],
-        },
+    const rules = {
+        global: { override: [] as IPushRule[], room: [] as IPushRule[], content: [], sender: [], underride: [] },
     };
-    const remote = JSON.parse(JSON.stringify(client.pushRules));
-    client.getPushRules.mockImplementation(async () => remote);
-    client.setPushRuleEnabled.mockResolvedValue({});
-    client.addPushRule.mockImplementation(async (_scope, _kind, id, rule) => {
-        remote.global.override = remote.global.override.filter((item: IPushRule) => item.rule_id !== id);
-        remote.global.override.push({ ...rule, rule_id: id, enabled: true, default: false });
+    if (muted)
+        rules.global.override.push({
+            rule_id: id,
+            enabled: true,
+            default: false,
+            conditions: [{ kind: ConditionKind.EventMatch, key: "room_id", pattern: id }],
+            actions: [PushRuleActionName.DontNotify],
+        });
+    client.pushRules = JSON.parse(JSON.stringify(rules));
+    client.getPushRules.mockImplementation(async () => {
+        client.pushRules = JSON.parse(JSON.stringify(rules));
+        return client.pushRules!;
+    });
+    client.getRoomPushRule.mockImplementation((_scope, roomId) =>
+        client.pushRules?.global?.room?.find((r) => r.rule_id === roomId),
+    );
+    client.setRoomAccountData.mockImplementation(async (_room, _type, content) => {
+        sync(content as NotificationSchedule);
         return {};
     });
-    client.deletePushRule.mockImplementation(async (_scope, _kind, id) => {
-        remote.global.override = remote.global.override.filter((item: IPushRule) => item.rule_id !== id);
+    client.addPushRule.mockImplementation(async (_scope, kind, ruleId, body) => {
+        const list = kind === PushRuleKind.Override ? rules.global.override : rules.global.room;
+        const old = list.findIndex((r) => r.rule_id === ruleId);
+        if (old >= 0) list.splice(old, 1);
+        list.push({ ...body, rule_id: ruleId, enabled: true, default: false });
+        return {};
+    });
+    client.deletePushRule.mockImplementation(async (_scope, kind, ruleId) => {
+        const list = kind === PushRuleKind.Override ? rules.global.override : rules.global.room;
+        const old = list.findIndex((r) => r.rule_id === ruleId);
+        if (old >= 0) list.splice(old, 1);
         return {};
     });
     const controller = new RoomMuteScheduleController(client);
     controllers.push(controller);
-    const sync = (next: NotificationSchedule) => {
-        const event = new MatrixEvent({ type: SCHEDULE_EVENT_TYPE, content: next });
-        room.addAccountData([event]);
-        client.emit(RoomEvent.AccountData, event, room);
-    };
-    return { client, room, controller, sync };
+    return { client, controller, rules, sync };
 }
-const owned = (): IPushRule => ({
-    rule_id: scheduleMuteRuleId(roomId),
-    enabled: true,
-    default: false,
-    conditions: [{ kind: ConditionKind.EventMatch, key: "room_id", pattern: roomId }],
-    actions: [PushRuleActionName.DontNotify],
-});
 beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date("2026-11-11T20:00:00Z"));
@@ -88,162 +96,111 @@ afterEach(() => {
     for (const c of controllers.splice(0)) c.stop();
     jest.useRealTimers();
 });
-
-describe("Matrix-backed room mute schedules", () => {
-    it("creates a standard DontNotify override after the exact 1pm cutoff", async () => {
-        const { client, controller } = setup();
+describe("One shared room mute", () => {
+    it("uses the ordinary room-id mute rule and visible room state", async () => {
+        const { client, controller, rules } = setup();
         controller.start();
         await controller.reconcile();
-        expect(client.addPushRule).toHaveBeenCalledWith("global", "override", scheduleMuteRuleId(roomId), {
-            conditions: [{ kind: ConditionKind.EventMatch, key: "room_id", pattern: roomId }],
-            actions: [PushRuleActionName.DontNotify],
-        });
-        expect(controller.status(roomId)).toBe("muted");
-        await controller.reconcile();
-        expect(client.addPushRule).toHaveBeenCalledTimes(1);
+        expect(rules.global.override.map((r) => r.rule_id)).toEqual([id]);
+        expect(getRoomNotifsState(client, id)).toBe(RoomNotifState.Mute);
+        expect(controller.status(id)).toBe("muted");
     });
-    it("transitions at 13:00 without a message or foreground interaction", async () => {
+    it("toggles that same mute at exactly 13:00 without messages", async () => {
         jest.setSystemTime(new Date("2026-11-11T18:59:59Z"));
         const { client, controller } = setup();
         controller.start();
         await controller.reconcile();
-        expect(client.addPushRule).not.toHaveBeenCalled();
+        expect(getRoomNotifsState(client, id)).toBe(RoomNotifState.AllMessages);
         await jest.advanceTimersByTimeAsync(1020);
-        expect(client.addPushRule).toHaveBeenCalledTimes(1);
+        expect(getRoomNotifsState(client, id)).toBe(RoomNotifState.Mute);
     });
-    it("preserves manual mute and the exact prior room rule when the window resumes", async () => {
-        jest.setSystemTime(new Date("2026-11-11T11:00:00Z"));
-        const manual = { ...owned(), rule_id: roomId };
-        const { client, controller } = setup(policy, [owned(), manual]);
-        const before = JSON.stringify(client.pushRules);
+    it("opens the same existing room mute at 05:00, not a separate hidden rule", async () => {
+        jest.setSystemTime(new Date("2026-11-14T10:59:59Z"));
+        const { client, controller, rules } = setup(policy, true);
         controller.start();
         await controller.reconcile();
-        expect(client.deletePushRule).toHaveBeenCalledWith("global", "override", scheduleMuteRuleId(roomId));
-        expect(client.deletePushRule).toHaveBeenCalledTimes(1);
-        expect(JSON.stringify(client.pushRules)).toBe(before);
-        expect(client.addPushRule).not.toHaveBeenCalled();
+        await jest.advanceTimersByTimeAsync(1020);
+        expect(rules.global.override).toEqual([]);
+        expect(getRoomNotifsState(client, id)).toBe(RoomNotifState.AllMessages);
     });
-    it("keeps a pre-existing manual mute when adopting a schedule", async () => {
-        const manual = { ...owned(), rule_id: roomId };
-        const { client, controller } = setup(policy, [manual]);
+    it("manual unmute overrides quiet hours and survives subsequent timer reconciliations", async () => {
+        const { client, controller, rules } = setup();
         controller.start();
         await controller.reconcile();
-        expect(client.deletePushRule).not.toHaveBeenCalled();
-        expect(client.pushRules!.global.override).toEqual([manual]);
-    });
-    it.each([undefined, "local" as const])(
-        "does not silently migrate legacy local schedules (%s)",
-        async (enforcement) => {
-            const { client, controller } = setup({ ...policy, enforcement });
-            controller.start();
-            await controller.reconcile();
-            expect(client.addPushRule).not.toHaveBeenCalled();
-            expect(client.deletePushRule).not.toHaveBeenCalled();
-        },
-    );
-    it.each([{ enabled: false }, { override: "normal" as const }])(
-        "removes only the owned rule on disable/normal override %s",
-        async (patch) => {
-            const { client, controller } = setup({ ...policy, ...patch }, [owned()]);
-            controller.start();
-            await controller.reconcile();
-            expect(client.deletePushRule).toHaveBeenCalledWith("global", "override", scheduleMuteRuleId(roomId));
-        },
-    );
-    it("retries a failed server mutation and never reports a mute before success", async () => {
-        const { client, controller } = setup();
-        const succeed = client.addPushRule.getMockImplementation()!;
-        client.addPushRule.mockRejectedValue(new Error("offline"));
-        controller.start();
+        await setRoomNotifsState(client, id, RoomNotifState.AllMessages);
         await controller.reconcile();
-        expect(controller.status(roomId)).toBe("error");
-        client.addPushRule.mockImplementation(succeed);
-        await controller.reconcile();
-        expect(controller.status(roomId)).toBe("muted");
-        expect(client.addPushRule).toHaveBeenCalledTimes(3);
-    });
-    it("reconciles a missed boundary after sleep using current time", async () => {
-        jest.setSystemTime(new Date("2026-11-11T18:00:00Z"));
-        const { client, controller } = setup();
-        controller.start();
-        await controller.reconcile();
-        jest.setSystemTime(new Date("2026-11-11T22:00:00Z"));
-        window.dispatchEvent(new Event("focus"));
-        await controller.reconcile();
-        expect(client.addPushRule).toHaveBeenCalledTimes(1);
-    });
-    it("finishes an in-flight mute then removes it if the schedule changed", async () => {
-        const { client, controller, sync } = setup();
-        let finish!: () => void;
-        const add = client.addPushRule.getMockImplementation()!;
-        client.addPushRule.mockImplementationOnce(
-            (...args) =>
-                new Promise((resolve) => {
-                    finish = () => {
-                        void Promise.resolve(add(...args)).then(resolve);
-                    };
-                }),
-        );
-        controller.start();
-        await Promise.resolve();
-        sync({ ...policy, enabled: false });
-        finish();
-        await controller.reconcile();
-        expect(client.deletePushRule).toHaveBeenCalledWith("global", "override", scheduleMuteRuleId(roomId));
-        expect(controller.status(roomId)).toBe("normal");
-    });
-    it("does nothing before authenticated rules are ready or after stop", async () => {
-        const { client, controller } = setup();
-        client.pushRules = undefined;
-        controller.start();
-        await controller.reconcile();
-        expect(client.addPushRule).not.toHaveBeenCalled();
-        controller.stop();
+        expect(readSchedule(client, id)?.override).toBe("normal");
         await jest.advanceTimersByTimeAsync(120000);
+        expect(rules.global.override).toEqual([]);
+        expect(getRoomNotifsState(client, id)).toBe(RoomNotifState.AllMessages);
+        expect(roomScheduleMutes(client, id)).toBe(false);
+    });
+    it("manual mute overrides allowed hours through the same standard rule", async () => {
+        jest.setSystemTime(new Date("2026-11-11T16:00:00Z"));
+        const { client, controller, rules } = setup();
+        controller.start();
+        await controller.reconcile();
+        await setRoomNotifsState(client, id, RoomNotifState.Mute);
+        await controller.reconcile();
+        expect(readSchedule(client, id)?.override).toBe("mute");
+        expect(rules.global.override.map((r) => r.rule_id)).toEqual([id]);
+        expect(getRoomNotifsState(client, id)).toBe(RoomNotifState.Mute);
+    });
+    it("resuming the existing schedule replaces a manual override", async () => {
+        const { client, controller, sync } = setup({ ...policy, override: "normal" });
+        controller.start();
+        await controller.reconcile();
+        expect(getRoomNotifsState(client, id)).toBe(RoomNotifState.AllMessages);
+        sync({ ...policy, override: "schedule" });
+        await controller.reconcile();
+        expect(getRoomNotifsState(client, id)).toBe(RoomNotifState.Mute);
+    });
+    it("serializes a manual click behind a delayed scheduled write so the click wins", async () => {
+        const { client, controller, rules } = setup();
+        const add = client.addPushRule.getMockImplementation()!;
+        let release!: () => void;
+        let entered!: () => void;
+        const started = new Promise<void>((r) => {
+            entered = r;
+        });
+        const held = new Promise<void>((r) => {
+            release = r;
+        });
+        client.addPushRule.mockImplementationOnce(async (...args) => {
+            entered();
+            await held;
+            return add(...args);
+        });
+        controller.start();
+        await started;
+        const manual = setRoomNotifsState(client, id, RoomNotifState.AllMessages);
+        release();
+        await manual;
+        await controller.reconcile();
+        expect(rules.global.override).toEqual([]);
+        expect(readSchedule(client, id)?.override).toBe("normal");
+    });
+    it("reports server failure without speculatively clearing a room mute", async () => {
+        jest.setSystemTime(new Date("2026-11-11T16:00:00Z"));
+        const { client, controller, rules } = setup(policy, true);
+        client.getPushRules.mockRejectedValue(new Error("offline"));
+        controller.start();
+        await controller.reconcile();
+        expect(controller.status(id)).toBe("error");
+        expect(rules.global.override.map((r) => r.rule_id)).toEqual([id]);
+    });
+    it("does not silently migrate legacy schedules", async () => {
+        const { client, controller } = setup({ ...policy, enforcement: undefined });
+        controller.start();
+        await controller.reconcile();
         expect(client.addPushRule).not.toHaveBeenCalled();
+        expect(client.deletePushRule).not.toHaveBeenCalled();
     });
-});
-
-describe("schedule server confirmation and hydration", () => {
-    it("retains an owned mute until its room policy has hydrated", async () => {
-        const { client, controller } = setup(policy, [owned()]);
-        client.getRoom.mockReturnValue(null);
-        client.getRooms.mockReturnValue([]);
+    it("disabling a schedule leaves the single current mute state alone", async () => {
+        const { client, controller } = setup({ ...policy, enabled: false }, true);
         controller.start();
         await controller.reconcile();
         expect(client.deletePushRule).not.toHaveBeenCalled();
-        expect(controller.status(roomId)).toBe("waiting");
+        expect(getRoomNotifsState(client, id)).toBe(RoomNotifState.Mute);
     });
-    it("does not call an acknowledged HTTP write an active mute without server readback", async () => {
-        const { client, controller } = setup();
-        client.getPushRules.mockImplementation(async () => client.pushRules!);
-        controller.start();
-        await controller.reconcile();
-        expect(controller.status(roomId)).toBe("error");
-    });
-    it("keeps failures isolated between accounts", async () => {
-        const a = setup(),
-            b = setup();
-        a.client.addPushRule.mockRejectedValue(new Error("offline"));
-        a.controller.start();
-        b.controller.start();
-        await Promise.all([a.controller.reconcile(), b.controller.reconcile()]);
-        expect(a.controller.status(roomId)).toBe("error");
-        expect(b.controller.status(roomId)).toBe("muted");
-    });
-    it("does not remove another account rule with a similar but different namespace", async () => {
-        const other = { ...owned(), rule_id: "app.other.schedule.room" };
-        const { client, controller } = setup({ ...policy, enabled: false }, [other]);
-        controller.start();
-        await controller.reconcile();
-        expect(client.deletePushRule).not.toHaveBeenCalled();
-    });
-});
-
-it("manual unmute removes the manual rule, not the scheduler rule ordered before it", async () => {
-    const manual = { ...owned(), rule_id: roomId };
-    const { client } = setup(policy, [owned(), manual]);
-    await setRoomNotifsState(client, roomId, RoomNotifState.AllMessages);
-    expect(client.deletePushRule).toHaveBeenCalledTimes(1);
-    expect(client.deletePushRule).toHaveBeenCalledWith("global", "override", roomId);
 });

@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import { SCHEDULE_MUTE_PREFIX } from "./utils/SyndicateNotificationSchedule";
+import { readSchedule, saveSchedule, scheduleMutes } from "./utils/SyndicateNotificationSchedule";
 import { PushProcessor } from "matrix-js-sdk/src/pushprocessor";
 import {
     NotificationCountType,
@@ -89,12 +89,55 @@ export function getRoomNotifsState(client: MatrixClient, roomId: string): RoomNo
     return null;
 }
 
-export function setRoomNotifsState(client: MatrixClient, roomId: string, newState: RoomNotifState): Promise<void> {
-    if (newState === RoomNotifState.Mute) {
-        return setRoomNotifsStateMuted(client, roomId);
-    } else {
-        return setRoomNotifsStateUnmuted(client, roomId, newState);
+// The scheduler and every room control share this operation and the same rule.
+// Serialize their writes so a delayed scheduled write cannot undo a manual click.
+const notificationWrites = new WeakMap<MatrixClient, Map<string, Promise<void>>>();
+export function setRoomNotifsState(
+    client: MatrixClient,
+    roomId: string,
+    newState: RoomNotifState,
+    source: "manual" | "schedule" = "manual",
+): Promise<void> {
+    let rooms = notificationWrites.get(client);
+    if (!rooms) {
+        rooms = new Map();
+        notificationWrites.set(client, rooms);
     }
+    const previous = rooms.get(roomId) ?? Promise.resolve();
+    const next = previous
+        .catch(() => undefined)
+        .then(async () => {
+            const policy = readSchedule(client, roomId);
+            if (policy?.enforcement === "matrix") {
+                if (source === "manual") {
+                    // The existing visible schedule override is shared by ordinary
+                    // room controls too, rather than a second hidden mute layer.
+                    await saveSchedule(client, roomId, {
+                        ...policy,
+                        override: newState === RoomNotifState.Mute ? "mute" : "normal",
+                    });
+                } else {
+                    if (!policy.enabled && (policy.override ?? "schedule") === "schedule") return;
+                    // Re-evaluate after acquiring the shared queue: an intervening
+                    // manual click or policy edit invalidates a stale scheduled write.
+                    if ((newState === RoomNotifState.Mute) !== scheduleMutes(policy)) return;
+                }
+            } else if (source === "schedule") {
+                return;
+            }
+            // A preceding queued operation may have changed the server before its
+            // sync echo arrived. Read back inside the queue before the next toggle.
+            if (policy?.enforcement === "matrix") await client.getPushRules();
+            if (newState === RoomNotifState.Mute) await setRoomNotifsStateMuted(client, roomId);
+            else await setRoomNotifsStateUnmuted(client, roomId, newState);
+        });
+    rooms.set(roomId, next);
+    void next
+        .finally(() => {
+            if (rooms.get(roomId) === next) rooms.delete(roomId);
+        })
+        .catch(() => undefined);
+    return next;
 }
 
 export function getUnreadNotificationCount(
@@ -165,13 +208,7 @@ function setRoomNotifsStateMuted(cli: MatrixClient, roomId: string): Promise<any
 function setRoomNotifsStateUnmuted(cli: MatrixClient, roomId: string, newState: RoomNotifState): Promise<any> {
     const promises: Promise<unknown>[] = [];
 
-    // Manual preference changes must not delete the scheduler's independent mute.
-    // Otherwise a user clearing their manual mute during quiet hours would remove
-    // the wrong rule and remain manually muted when the next window begins.
-    const overrideMuteRule = cli.pushRules?.global?.override?.find(
-        (rule) =>
-            rule.enabled && !rule.rule_id.startsWith(SCHEDULE_MUTE_PREFIX) && isRuleRoomMuteRuleForRoomId(roomId, rule),
-    );
+    const overrideMuteRule = findOverrideMuteRule(cli, roomId);
     if (overrideMuteRule) {
         promises.push(cli.deletePushRule("global", PushRuleKind.Override, overrideMuteRule.rule_id));
     }

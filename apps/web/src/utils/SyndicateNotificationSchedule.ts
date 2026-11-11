@@ -4,9 +4,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 */
 import { type MatrixClient, type MatrixEvent, type Room, RoomEvent } from "matrix-js-sdk/src/matrix";
 
-export const SCHEDULE_MUTE_PREFIX = "app.syn.schedule.mute.v1.";
-export const scheduleMuteRuleId = (roomId: string): string => SCHEDULE_MUTE_PREFIX + encodeURIComponent(roomId);
-
 export const SCHEDULE_EVENT_TYPE = "app.syn.notification_schedule";
 export type ScheduleOverride = "schedule" | "mute" | "normal";
 export interface NotificationSchedule {
@@ -139,5 +136,8 @@ export async function saveSchedule(
 }
 
 export function roomScheduleMutes(client: MatrixClient, roomId: string): boolean {
-    return scheduleMutes(readSchedule(client, roomId));
+    const policy = readSchedule(client, roomId);
+    // Matrix-backed schedules drive the ordinary visible room mute. They must
+    // not add a separate delivery filter that can defeat the room controls.
+    return policy?.enforcement === "matrix" ? false : scheduleMutes(policy);
 }

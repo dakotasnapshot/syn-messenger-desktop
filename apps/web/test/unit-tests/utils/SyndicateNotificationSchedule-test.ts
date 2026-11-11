@@ -87,7 +87,8 @@ describe("schedule sync", () => {
         const value = { ...schedule, override: "mute" as const };
         await saveSchedule(client, roomId, value);
         expect(client.setRoomAccountData).toHaveBeenCalledWith(roomId, SCHEDULE_EVENT_TYPE, value);
-        expect(roomScheduleMutes(client, roomId)).toBe(true);
+        expect(readSchedule(client, roomId)).toEqual(value);
+        expect(roomScheduleMutes(client, roomId)).toBe(false);
     });
     it("honours remote sync without writing back or leaking between accounts", async () => {
         const a = makeClient(),
