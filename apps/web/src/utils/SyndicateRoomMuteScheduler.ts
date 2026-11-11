@@ -27,6 +27,8 @@ export type EnforcementStatus = "waiting" | "muted" | "normal" | "error";
 
 export class RoomMuteScheduleController {
     private active = false;
+    private activitySent?: boolean;
+    private unsubscribeNativeTick?: () => void;
     private hasServerBaseline = false;
     private dirty = false;
     private running?: Promise<void>;
@@ -81,6 +83,7 @@ export class RoomMuteScheduleController {
     public start(): void {
         if (this.active) return;
         this.active = true;
+        if (typeof window !== "undefined") this.unsubscribeNativeTick = window.electron?.onScheduleTick?.(this.wake);
         this.client.on(RoomEvent.AccountData, this.onRoomData);
         this.client.on(ClientEvent.AccountData, this.onAccountData);
         this.client.on(ClientEvent.Sync, this.sync);
@@ -92,8 +95,17 @@ export class RoomMuteScheduleController {
         this.arm();
         this.wake();
     }
+    private publishActivity(active: boolean): void {
+        if (this.activitySent === active) return;
+        this.activitySent = active;
+        if (typeof window !== "undefined")
+            window.electron?.send("app_onAction", { action: "notification_schedule_activity", active });
+    }
     public stop(): void {
         this.active = false;
+        this.publishActivity(false);
+        this.unsubscribeNativeTick?.();
+        this.unsubscribeNativeTick = undefined;
         clearTimeout(this.timer);
         this.client.off(RoomEvent.AccountData, this.onRoomData);
         this.client.off(ClientEvent.AccountData, this.onAccountData);
@@ -121,6 +133,12 @@ export class RoomMuteScheduleController {
             let rules = this.client.pushRules?.global?.override;
             if (!rules) continue;
             const knownRooms = this.client.getRooms();
+            this.publishActivity(
+                knownRooms.some((room) => {
+                    const policy = readSchedule(this.client, room.roomId);
+                    return policy?.enforcement === "matrix" && (policy.enabled || policy.override === "mute");
+                }),
+            );
             const scheduledRooms = knownRooms.filter(
                 (room) => readSchedule(this.client, room.roomId)?.enforcement === "matrix",
             );

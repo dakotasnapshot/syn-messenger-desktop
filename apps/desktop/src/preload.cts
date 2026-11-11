@@ -37,6 +37,11 @@ const CHANNELS = [
 ];
 
 contextBridge.exposeInMainWorld("electron", {
+    onScheduleTick: (callback: () => void): (() => void) => {
+        const listener = (): void => callback();
+        ipcRenderer.on("notification_schedule_tick", listener);
+        return () => ipcRenderer.removeListener("notification_schedule_tick", listener);
+    },
     on(channel: string, listener: (event: IpcRendererEvent, ...args: any[]) => void): void {
         if (!CHANNELS.includes(channel)) {
             console.error(`Unknown IPC channel ${channel} ignored`);

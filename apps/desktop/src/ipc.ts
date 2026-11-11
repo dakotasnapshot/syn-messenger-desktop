@@ -5,7 +5,16 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import { app, autoUpdater, desktopCapturer, ipcMain, powerSaveBlocker, TouchBar, nativeImage } from "electron";
+import {
+    app,
+    autoUpdater,
+    desktopCapturer,
+    ipcMain,
+    powerSaveBlocker,
+    powerMonitor,
+    TouchBar,
+    nativeImage,
+} from "electron";
 
 import IpcMainEvent = Electron.IpcMainEvent;
 import { randomArray } from "./utils.js";
@@ -13,6 +22,13 @@ import { consumeDisplayMediaCallback } from "./displayMediaCallback.js";
 import Store, { clearDataAndRelaunch } from "./store.js";
 import { getConfig } from "./config.js";
 import { managedUpdateFeedUrl } from "./managed-updater.js";
+
+import { roomScheduleClock } from "./schedule-clock.js";
+
+void app.whenReady().then(() => {
+    powerMonitor.on("resume", () => roomScheduleClock.wake());
+});
+app.on("before-quit", () => roomScheduleClock.stop());
 
 let focusHandlerAttached = false;
 ipcMain.on("loudNotification", function (): void {
@@ -31,6 +47,19 @@ ipcMain.on("loudNotification", function (): void {
 let powerSaveBlockerId: number | null = null;
 ipcMain.on("app_onAction", function (_ev: IpcMainEvent, payload) {
     switch (payload.action) {
+        case "notification_schedule_activity": {
+            const contents = global.mainWindow?.webContents;
+            if (
+                !contents ||
+                _ev.sender !== contents ||
+                _ev.senderFrame !== contents.mainFrame ||
+                !_ev.senderFrame?.url.startsWith("vector://vector/") ||
+                typeof payload.active !== "boolean"
+            )
+                return;
+            roomScheduleClock.setActive(contents, payload.active);
+            break;
+        }
         case "call_state": {
             if (powerSaveBlockerId !== null && powerSaveBlocker.isStarted(powerSaveBlockerId)) {
                 if (payload.state === "ended") {
@@ -60,6 +89,12 @@ ipcMain.on("ipcCall", async function (_ev: IpcMainEvent, payload) {
             break;
         case "setLanguage":
             global.appLocalization.setAppLocale(args[0]);
+            break;
+        case "getScheduleTimerState":
+            ret = {
+                nativeClockActive: roomScheduleClock.isActive(global.mainWindow.webContents),
+                backgroundThrottling: global.mainWindow.webContents.getBackgroundThrottling(),
+            };
             break;
         case "getAppVersion":
             ret = app.getVersion();

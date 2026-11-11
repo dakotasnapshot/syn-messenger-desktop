@@ -117,6 +117,7 @@ declare global {
     }
 
     interface Electron {
+        onScheduleTick?(callback: () => void): () => void;
         // Legacy
         on(channel: ElectronChannel, listener: (event: Event, ...args: any[]) => void): void;
         send(channel: ElectronChannel, ...args: any[]): void;
