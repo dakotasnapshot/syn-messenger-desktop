@@ -26,6 +26,7 @@ import { PushProcessor } from "matrix-js-sdk/src/pushprocessor";
 
 import type BasePlatform from "../../src/BasePlatform";
 import Notifier, { NOTIFICATION_SOUND_THROTTLE_MS } from "../../src/Notifier";
+import { roomMuteScheduler } from "../../src/utils/SyndicateRoomMuteScheduler";
 import SettingsStore from "../../src/settings/SettingsStore";
 import { defaultSchedule, SCHEDULE_EVENT_TYPE } from "../../src/utils/SyndicateNotificationSchedule";
 import ToastStore from "../../src/stores/ToastStore";
@@ -85,6 +86,20 @@ describe("Notifier", () => {
     let mockSettings: Record<string, boolean> = {};
 
     const userId = "@bob:example.org";
+
+    it("stops the original scheduler even when the SDK client was cleared during logout", () => {
+        notifier.start();
+        const controller = roomMuteScheduler(mockClient);
+        const stop = jest.spyOn(controller, "stop");
+        try {
+            context._client = undefined;
+            notifier.stop();
+            expect(stop).toHaveBeenCalledTimes(1);
+        } finally {
+            context._client = mockClient;
+            stop.mockRestore();
+        }
+    });
 
     const emitLiveEvent = (event: MatrixEvent): void => {
         mockClient!.emit(RoomEvent.Timeline, event, testRoom, false, false, {

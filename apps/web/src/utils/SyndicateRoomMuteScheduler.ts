@@ -12,12 +12,17 @@ import {
     type MatrixClient,
     type MatrixEvent,
 } from "matrix-js-sdk/src/matrix";
-import { readSchedule, roomScheduleMutes, SCHEDULE_EVENT_TYPE } from "./SyndicateNotificationSchedule";
+import {
+    readSchedule,
+    roomScheduleMutes,
+    SCHEDULE_EVENT_TYPE,
+    SCHEDULE_MUTE_PREFIX,
+    scheduleMuteRuleId,
+} from "./SyndicateNotificationSchedule";
+export { SCHEDULE_MUTE_PREFIX, scheduleMuteRuleId } from "./SyndicateNotificationSchedule";
 
 // Same standard Matrix override used by room mute, but separately owned: never
 // delete or rewrite a manual mute, room notification mode, or another app's rule.
-export const SCHEDULE_MUTE_PREFIX = "app.syn.schedule.mute.v1.";
-export const scheduleMuteRuleId = (roomId: string): string => SCHEDULE_MUTE_PREFIX + encodeURIComponent(roomId);
 export type EnforcementStatus = "waiting" | "muted" | "normal" | "error";
 
 export class RoomMuteScheduleController {

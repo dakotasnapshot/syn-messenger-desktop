@@ -6,6 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
+import { SCHEDULE_MUTE_PREFIX } from "./utils/SyndicateNotificationSchedule";
 import { PushProcessor } from "matrix-js-sdk/src/pushprocessor";
 import {
     NotificationCountType,
@@ -164,7 +165,13 @@ function setRoomNotifsStateMuted(cli: MatrixClient, roomId: string): Promise<any
 function setRoomNotifsStateUnmuted(cli: MatrixClient, roomId: string, newState: RoomNotifState): Promise<any> {
     const promises: Promise<unknown>[] = [];
 
-    const overrideMuteRule = findOverrideMuteRule(cli, roomId);
+    // Manual preference changes must not delete the scheduler's independent mute.
+    // Otherwise a user clearing their manual mute during quiet hours would remove
+    // the wrong rule and remain manually muted when the next window begins.
+    const overrideMuteRule = cli.pushRules?.global?.override?.find(
+        (rule) =>
+            rule.enabled && !rule.rule_id.startsWith(SCHEDULE_MUTE_PREFIX) && isRuleRoomMuteRuleForRoomId(roomId, rule),
+    );
     if (overrideMuteRule) {
         promises.push(cli.deletePushRule("global", PushRuleKind.Override, overrideMuteRule.rule_id));
     }

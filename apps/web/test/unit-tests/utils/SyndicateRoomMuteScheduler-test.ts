@@ -10,6 +10,7 @@ import {
     PushRuleActionName,
     type IPushRule,
 } from "matrix-js-sdk/src/matrix";
+import { RoomNotifState, setRoomNotifsState } from "../../../src/RoomNotifs";
 import { getMockClientWithEventEmitter } from "../../test-utils";
 import {
     defaultSchedule,
@@ -34,6 +35,7 @@ function setup(value: NotificationSchedule = policy, overrides: IPushRule[] = []
         getRoom: jest.fn(),
         addPushRule: jest.fn(),
         deletePushRule: jest.fn(),
+        getRoomPushRule: jest.fn(),
         getPushRules: jest.fn(),
         setPushRuleEnabled: jest.fn(),
     });
@@ -236,4 +238,12 @@ describe("schedule server confirmation and hydration", () => {
         await controller.reconcile();
         expect(client.deletePushRule).not.toHaveBeenCalled();
     });
+});
+
+it("manual unmute removes the manual rule, not the scheduler rule ordered before it", async () => {
+    const manual = { ...owned(), rule_id: roomId };
+    const { client } = setup(policy, [owned(), manual]);
+    await setRoomNotifsState(client, roomId, RoomNotifState.AllMessages);
+    expect(client.deletePushRule).toHaveBeenCalledTimes(1);
+    expect(client.deletePushRule).toHaveBeenCalledWith("global", "override", roomId);
 });
