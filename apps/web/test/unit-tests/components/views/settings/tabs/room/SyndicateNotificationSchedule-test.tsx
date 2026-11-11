@@ -14,10 +14,10 @@ import { defaultSchedule, SCHEDULE_EVENT_TYPE } from "../../../../../../../src/u
 const roomId = "!synthetic:example.org";
 describe("Syndicate notification schedule settings", () => {
     const schedule = { ...defaultSchedule(), enabled: true, timezone: "Europe/Paris" };
-    const setup = () => {
+    const setup = (value = schedule) => {
         const client = getMockClientWithEventEmitter({ getRoom: jest.fn(), setRoomAccountData: jest.fn() });
         const room = new Room(roomId, client, "@synthetic:example.org");
-        room.addAccountData([new MatrixEvent({ type: SCHEDULE_EVENT_TYPE, content: schedule })]);
+        room.addAccountData([new MatrixEvent({ type: SCHEDULE_EVENT_TYPE, content: value })]);
         client.getRoom.mockReturnValue(room);
         client.setRoomAccountData.mockResolvedValue({});
         render(
@@ -69,5 +69,34 @@ describe("Syndicate notification schedule settings", () => {
         await userEvent.click(await screen.findByRole("button", { name: "Save schedule" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("Could not save the schedule");
         expect(screen.getByLabelText("Time zone")).toHaveValue("Europe/Paris");
+    });
+});
+
+describe("explicit upgrade to Matrix room muting", () => {
+    it("preserves legacy local behavior until an explicit Save opts into account-wide muting", async () => {
+        const client = getMockClientWithEventEmitter({ getRoom: jest.fn(), setRoomAccountData: jest.fn() });
+        const room = new Room(roomId, client, "@synthetic:example.org");
+        const legacy = { ...defaultSchedule(), enabled: true, enforcement: undefined };
+        room.addAccountData([new MatrixEvent({ type: SCHEDULE_EVENT_TYPE, content: legacy })]);
+        client.getRoom.mockReturnValue(room);
+        client.setRoomAccountData.mockResolvedValue({});
+        render(
+            <MatrixClientContext.Provider value={client}>
+                <SyndicateNotificationSchedule roomId={roomId} />
+            </MatrixClientContext.Provider>,
+        );
+        expect(
+            await screen.findByText(
+                "This saved schedule uses older local filtering. Save it to enable Matrix room muting.",
+            ),
+        ).toBeInTheDocument();
+        expect(client.setRoomAccountData).not.toHaveBeenCalled();
+        await userEvent.click(screen.getByRole("button", { name: "Save schedule" }));
+        await waitFor(() =>
+            expect(client.setRoomAccountData).toHaveBeenCalledWith(roomId, SCHEDULE_EVENT_TYPE, {
+                ...legacy,
+                enforcement: "matrix",
+            }),
+        );
     });
 });

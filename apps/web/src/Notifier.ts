@@ -27,6 +27,7 @@ import { logger } from "matrix-js-sdk/src/logger";
 import { type PermissionChanged as PermissionChangedEvent } from "@matrix-org/analytics-events/types/typescript/PermissionChanged";
 import { type SessionMembershipData, type IRTCNotificationContent } from "matrix-js-sdk/src/matrixrtc";
 
+import { roomMuteScheduler } from "./utils/SyndicateRoomMuteScheduler";
 import { roomScheduleMutes } from "./utils/SyndicateNotificationSchedule";
 import SdkConfig from "./SdkConfig";
 import PlatformPeg from "./PlatformPeg";
@@ -340,6 +341,7 @@ export default class Notifier extends TypedEventEmitter<keyof EmittedEvents, Emi
     }
 
     public start(): void {
+        roomMuteScheduler(this.sdkContext.client!).start();
         this.sdkContext.client!.on(RoomEvent.Timeline, this.onEvent);
         this.sdkContext.client!.on(RoomEvent.Receipt, this.onRoomReceipt);
         this.sdkContext.client!.on(MatrixEventEvent.Decrypted, this.onEventDecrypted);
@@ -349,6 +351,7 @@ export default class Notifier extends TypedEventEmitter<keyof EmittedEvents, Emi
     }
 
     public stop(): void {
+        if (this.sdkContext.client) roomMuteScheduler(this.sdkContext.client).stop();
         this.sdkContext.client?.removeListener(RoomEvent.Timeline, this.onEvent);
         this.sdkContext.client?.removeListener(RoomEvent.Receipt, this.onRoomReceipt);
         this.sdkContext.client?.removeListener(MatrixEventEvent.Decrypted, this.onEventDecrypted);

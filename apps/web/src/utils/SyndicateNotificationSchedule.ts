@@ -14,6 +14,7 @@ export interface NotificationSchedule {
     end_minute: number;
     timezone: string;
     override?: ScheduleOverride;
+    enforcement?: "local" | "matrix";
 }
 
 declare module "matrix-js-sdk/src/types" {
@@ -25,6 +26,7 @@ declare module "matrix-js-sdk/src/types" {
 export function defaultSchedule(): NotificationSchedule {
     return {
         version: 1,
+        enforcement: "matrix",
         enabled: false,
         days: [1, 2, 3, 4, 5],
         start_minute: 540,
@@ -39,6 +41,7 @@ export function isValidSchedule(value: unknown): value is NotificationSchedule {
     const s = value as NotificationSchedule;
     if (
         s.version !== 1 ||
+        (s.enforcement !== undefined && !["local", "matrix"].includes(s.enforcement)) ||
         typeof s.enabled !== "boolean" ||
         !Array.isArray(s.days) ||
         s.days.length > 7 ||

@@ -15,6 +15,7 @@ import {
     type ScheduleOverride,
 } from "../../../../../utils/SyndicateNotificationSchedule";
 
+import { roomMuteScheduler } from "../../../../../utils/SyndicateRoomMuteScheduler";
 import MatrixClientContext from "../../../../../contexts/MatrixClientContext";
 import { SettingsSubsection } from "../../shared/SettingsSubsection";
 import AccessibleButton from "../../../elements/AccessibleButton";
@@ -40,6 +41,8 @@ export default function SyndicateNotificationSchedule({ roomId }: { roomId: stri
     const [retry, setRetry] = useState(0);
     const [dirty, setDirty] = useState(false);
     const [remoteChanged, setRemoteChanged] = useState(false);
+    const [, refreshEnforcement] = useState(0);
+    useEffect(() => roomMuteScheduler(client).subscribe(() => refreshEnforcement((value) => value + 1)), [client]);
     useEffect(() => {
         setSchedule(readSchedule(client, roomId) ?? defaultSchedule());
         setSupported(!!client.getRoom(roomId));
@@ -73,7 +76,12 @@ export default function SyndicateNotificationSchedule({ roomId }: { roomId: stri
         setError(false);
         setSaved(false);
         try {
-            await saveSchedule(client, roomId, schedule);
+            const upgraded = { ...schedule, enforcement: "matrix" as const };
+            await saveSchedule(client, roomId, upgraded);
+            setSchedule(upgraded);
+            const controller = roomMuteScheduler(client);
+            controller.start();
+            await controller.reconcile();
             setDirty(false);
             setRemoteChanged(false);
             setSaved(true);
@@ -169,6 +177,12 @@ export default function SyndicateNotificationSchedule({ roomId }: { roomId: stri
                             </>
                         )}
                         <p>{_t("syndicate_schedule|description")}</p>
+                        {schedule.enforcement !== "matrix" && <p>{_t("syndicate_schedule|upgrade")}</p>}
+                        {schedule.enforcement === "matrix" && (
+                            <p role={roomMuteScheduler(client).status(roomId) === "error" ? "alert" : "status"}>
+                                {_t(`syndicate_schedule|status_${roomMuteScheduler(client).status(roomId)}`)}
+                            </p>
+                        )}
                         {invalid && <p role="alert">{_t("syndicate_schedule|invalid")}</p>}
                         <AccessibleButton kind="primary" disabled={saving || invalid} onClick={save}>
                             {_t("syndicate_schedule|save")}
