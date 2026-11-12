@@ -9,6 +9,9 @@ Please see LICENSE files in the repository root for full details.
 import { readSchedule, saveSchedule, scheduleMutes, scheduleSignature } from "./utils/SyndicateNotificationSchedule";
 import { PushProcessor } from "matrix-js-sdk/src/pushprocessor";
 import {
+    ClientEvent,
+    EventType,
+    MatrixEvent,
     NotificationCountType,
     ConditionKind,
     PushRuleActionName,
@@ -18,7 +21,7 @@ import {
 } from "matrix-js-sdk/src/matrix";
 import { KnownMembership } from "matrix-js-sdk/src/types";
 
-import type { IPushRule, Room, MatrixClient, MatrixEvent } from "matrix-js-sdk/src/matrix";
+import type { IPushRule, Room, MatrixClient } from "matrix-js-sdk/src/matrix";
 import { NotificationLevel } from "./stores/notifications/NotificationLevel";
 import { doesRoomHaveUnreadMessages, doesRoomOrThreadHaveUnreadMessages } from "./Unread";
 import { EffectiveMembership, getEffectiveMembership, isKnockDenied } from "./utils/membership";
@@ -134,7 +137,13 @@ export function setRoomNotifsState(
                 else await setRoomNotifsStateUnmuted(client, roomId, newState);
             }
             if (policy?.enforcement === "matrix") {
-                await client.getPushRules();
+                const confirmed = await client.getPushRules();
+                // Publish only confirmed server state to every existing mute
+                // indicator now, rather than waiting for a long-poll sync echo.
+                client.emit(
+                    ClientEvent.AccountData,
+                    new MatrixEvent({ type: EventType.PushRules, content: confirmed }),
+                );
                 const latest = readSchedule(client, roomId);
                 const muted = getRoomNotifsState(client, roomId) === RoomNotifState.Mute;
                 if (latest?.enforcement === "matrix" && muted === scheduleMutes(latest)) {
