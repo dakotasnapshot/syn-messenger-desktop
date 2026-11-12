@@ -15,12 +15,26 @@ export interface NotificationSchedule {
     timezone: string;
     override?: ScheduleOverride;
     enforcement?: "local" | "matrix";
+    last_applied?: { muted: boolean; signature: string };
 }
 
 declare module "matrix-js-sdk/src/types" {
     interface RoomAccountDataEvents {
         [SCHEDULE_EVENT_TYPE]: NotificationSchedule;
     }
+}
+
+/** Receipt of the last shared-state operation, not a second mute state. */
+export function scheduleSignature(policy: NotificationSchedule): string {
+    return JSON.stringify([
+        policy.enabled,
+        [...policy.days].sort(),
+        policy.start_minute,
+        policy.end_minute,
+        policy.timezone,
+        policy.override ?? "schedule",
+        policy.enforcement ?? "local",
+    ]);
 }
 
 export function defaultSchedule(): NotificationSchedule {
@@ -41,6 +55,11 @@ export function isValidSchedule(value: unknown): value is NotificationSchedule {
     const s = value as NotificationSchedule;
     if (
         s.version !== 1 ||
+        (s.last_applied !== undefined &&
+            (!s.last_applied ||
+                typeof s.last_applied.muted !== "boolean" ||
+                typeof s.last_applied.signature !== "string" ||
+                s.last_applied.signature.length > 2000)) ||
         (s.enforcement !== undefined && !["local", "matrix"].includes(s.enforcement)) ||
         typeof s.enabled !== "boolean" ||
         !Array.isArray(s.days) ||

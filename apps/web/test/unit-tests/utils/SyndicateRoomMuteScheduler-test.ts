@@ -180,6 +180,40 @@ describe("One shared room mute", () => {
         expect(rules.global.override).toEqual([]);
         expect(readSchedule(client, id)?.override).toBe("normal");
     });
+    it("honors another client unmuting the same rule, rather than re-muting it each minute", async () => {
+        const { client, controller, rules } = setup();
+        controller.start();
+        await controller.reconcile();
+        expect(readSchedule(client, id)?.last_applied?.muted).toBe(true);
+        rules.global.override = [];
+        await controller.reconcile();
+        expect(readSchedule(client, id)?.override).toBe("normal");
+        await jest.advanceTimersByTimeAsync(120000);
+        expect(getRoomNotifsState(client, id)).toBe(RoomNotifState.AllMessages);
+    });
+    it("recognizes a persisted external manual change in a completely fresh client", async () => {
+        const first = setup(policy, true);
+        first.controller.start();
+        await first.controller.reconcile();
+        const saved = readSchedule(first.client, id);
+        if (!saved) throw new Error("Policy was not persisted");
+        first.controller.stop();
+        const reopened = setup(saved, false);
+        reopened.controller.start();
+        await reopened.controller.reconcile();
+        expect(readSchedule(reopened.client, id)?.override).toBe("normal");
+        expect(reopened.rules.global.override).toEqual([]);
+    });
+    it("does not mistake a real schedule boundary for a manual override", async () => {
+        jest.setSystemTime(new Date("2026-11-11T18:59:59Z"));
+        const { client, controller } = setup();
+        controller.start();
+        await controller.reconcile();
+        expect(readSchedule(client, id)?.last_applied?.muted).toBe(false);
+        await jest.advanceTimersByTimeAsync(1020);
+        expect(getRoomNotifsState(client, id)).toBe(RoomNotifState.Mute);
+        expect(readSchedule(client, id)?.override).toBe("schedule");
+    });
     it("reports server failure without speculatively clearing a room mute", async () => {
         jest.setSystemTime(new Date("2026-11-11T16:00:00Z"));
         const { client, controller, rules } = setup(policy, true);

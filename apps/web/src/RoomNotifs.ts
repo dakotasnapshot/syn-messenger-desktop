@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only OR GPL-3.0-only OR LicenseRef-Element-Com
 Please see LICENSE files in the repository root for full details.
 */
 
-import { readSchedule, saveSchedule, scheduleMutes } from "./utils/SyndicateNotificationSchedule";
+import { readSchedule, saveSchedule, scheduleMutes, scheduleSignature } from "./utils/SyndicateNotificationSchedule";
 import { PushProcessor } from "matrix-js-sdk/src/pushprocessor";
 import {
     NotificationCountType,
@@ -128,8 +128,22 @@ export function setRoomNotifsState(
             // A preceding queued operation may have changed the server before its
             // sync echo arrived. Read back inside the queue before the next toggle.
             if (policy?.enforcement === "matrix") await client.getPushRules();
-            if (newState === RoomNotifState.Mute) await setRoomNotifsStateMuted(client, roomId);
-            else await setRoomNotifsStateUnmuted(client, roomId, newState);
+            const currentMuted = getRoomNotifsState(client, roomId) === RoomNotifState.Mute;
+            if (source === "manual" || currentMuted !== (newState === RoomNotifState.Mute)) {
+                if (newState === RoomNotifState.Mute) await setRoomNotifsStateMuted(client, roomId);
+                else await setRoomNotifsStateUnmuted(client, roomId, newState);
+            }
+            if (policy?.enforcement === "matrix") {
+                await client.getPushRules();
+                const latest = readSchedule(client, roomId);
+                const muted = getRoomNotifsState(client, roomId) === RoomNotifState.Mute;
+                if (latest?.enforcement === "matrix" && muted === scheduleMutes(latest)) {
+                    const signature = scheduleSignature(latest);
+                    if (latest.last_applied?.muted !== muted || latest.last_applied.signature !== signature) {
+                        await saveSchedule(client, roomId, { ...latest, last_applied: { muted, signature } });
+                    }
+                }
+            }
         });
     rooms.set(roomId, next);
     void next

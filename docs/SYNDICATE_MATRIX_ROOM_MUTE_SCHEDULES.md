@@ -12,7 +12,7 @@ Both sources use one per-client/per-room serialized operation queue. A scheduled
 
 The scheduler reads fresh server push rules on reconciliation, calls the common operation only when the actual mute differs from the desired state, then reads back and verifies the actual room mute. Unknown policies and failed hydration do not authorize changes. Disabling a policy stops driving the current mute rather than silently unmuting it.
 
-Manual controls in older/other clients do not write Syndicate’s schedule override metadata. Their standard room-rule changes synchronize normally, but a running scheduler following an active policy may apply that policy again. Cross-client manual-override handling must be covered before claiming equivalent override support in those clients.
+Manual changes from older/other Matrix clients are also honored. After a confirmed shared operation, the existing schedule stores a `last_applied` receipt (observed mute and policy signature), **not a separate mute rule/state used for notification delivery**. If fresh server rules differ from that receipt without a schedule edge or policy edit, the controller treats the actual shared-rule change as a manual override and records it through the same operation. The persisted receipt allows this recognition after a completely fresh client startup too. A genuine time-window transition is not misclassified as manual input. With no prior receipt, initial explicit adoption applies the saved schedule.
 
 ## Clock and lifecycle
 

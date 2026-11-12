@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 */
 import { ClientEvent, EventType, RoomEvent, type MatrixClient, type MatrixEvent } from "matrix-js-sdk/src/matrix";
 import { getRoomNotifsState, setRoomNotifsState, RoomNotifState } from "../RoomNotifs";
-import { readSchedule, scheduleMutes, SCHEDULE_EVENT_TYPE } from "./SyndicateNotificationSchedule";
+import { readSchedule, scheduleMutes, scheduleSignature, SCHEDULE_EVENT_TYPE } from "./SyndicateNotificationSchedule";
 
 // Drive the ordinary room mute used by every visible notification control.
 export type EnforcementStatus = "waiting" | "muted" | "normal" | "error";
@@ -133,7 +133,26 @@ export class RoomMuteScheduleController {
                 if (policy?.enforcement !== "matrix") continue;
                 try {
                     const desired = scheduleMutes(policy);
-                    if ((getRoomNotifsState(this.client, room.roomId) === RoomNotifState.Mute) !== desired) {
+                    const actual = getRoomNotifsState(this.client, room.roomId);
+                    const receipt = policy.last_applied;
+                    if (
+                        receipt?.signature === scheduleSignature(policy) &&
+                        receipt.muted === desired &&
+                        actual !== null &&
+                        (actual === RoomNotifState.Mute) !== receipt.muted
+                    ) {
+                        // The persisted shared rule changed without a policy edge:
+                        // honor a manual control in another/older Matrix client,
+                        // including while this client was closed. Do not fight it.
+                        await setRoomNotifsState(this.client, room.roomId, actual, "manual");
+                        this.dirty = true;
+                        continue;
+                    }
+                    if (
+                        (actual === RoomNotifState.Mute) !== desired ||
+                        receipt?.signature !== scheduleSignature(policy) ||
+                        receipt.muted !== desired
+                    ) {
                         await setRoomNotifsState(
                             this.client,
                             room.roomId,
