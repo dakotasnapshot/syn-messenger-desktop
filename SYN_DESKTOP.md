@@ -17,9 +17,9 @@ Encrypted rooms work in 0.1.0. Local full-text search inside encrypted message h
 
 Watch transport, iOS notification-service rendering, Apple communication notifications, and SwiftUI wallpaper storage are platform-specific and are not copied into Electron.
 
-## Current macOS release
+## Current desktop and web release
 
-macOS [0.1.12](docs/SYNDICATE_MACOS_0.1.12.md) adds scheduled room notifications and explicit manual overrides through standard Matrix account data, with no custom homeserver module. The signed/notarized universal DMG and native updater ZIP are published. Windows/Linux remain on their separate 0.1.11 bridge release; mobile and Loader are unchanged. See the release runbook for exact source, checksums, native acceptance and custom CLI profile restart limits.
+[0.1.14](docs/SYNDICATE_SUITE_0.1.14.md) brings web/macOS/Windows/Linux onto the adaptive conversation rail and latest shared Matrix room-mute baseline. Browser-only phone dialog sizing lives in the PWA shell. Signed/notarized Mac DMG/ZIP, unsigned-preview Windows EXE/MSI, Linux DEB/portable packages, public source, matching checksums and update feeds are published. Existing profiles and pinned update trust identity are retained; old0.1.10 direct-origin bridge endpoints remain. Native upgrade and public delivery evidence, custom CLI profile relaunch limitations and unverified physical-device scope are in the release receipt. iOS/Watch, Android and Loader are unchanged.
 
 ## Roadmap
 

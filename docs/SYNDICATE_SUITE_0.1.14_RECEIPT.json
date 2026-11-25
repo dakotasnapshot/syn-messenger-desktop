@@ -1,0 +1,110 @@
+{
+  "version": "0.1.14",
+  "rendererAndNativeSource": "2d1db1600d6c51bd78a861c360780d71dbeb12bd",
+  "sourceTag": "syndicate-desktop-0.1.14-source",
+  "browserShellSource": "3d2613616c9a815416f05df3a48fec5c76e9f50d",
+  "downloads": "https://synmessenger.com/downloads/",
+  "web": "https://synmessenger.com/chat/",
+  "release": "https://github.com/dakotasnapshot/syndicate-releases/releases/tag/desktop-v0.1.14",
+  "publicWholeFileVerification": "https://github.com/dakotasnapshot/syndicate-releases/actions/runs/45617556635",
+  "nativeAcceptance": {
+    "windowsLinux": "https://github.com/dakotasnapshot/syn-messenger-desktop/actions/runs/45612942560",
+    "windowsEXE": "https://github.com/dakotasnapshot/syn-messenger-desktop/actions/runs/45612820130",
+    "encryptedGIF": "https://github.com/dakotasnapshot/syn-messenger-desktop/actions/runs/45611518556",
+    "macOSPreviousReleaseUpgrade": {
+      "version": "0.1.14",
+      "previousVersion": "0.1.13",
+      "nativeUpdaterInstalled": true,
+      "exactInstalledPayloadHashes": true,
+      "profileMarkerPreserved": true,
+      "manualOriginalProfileRelaunchPassed": true,
+      "automaticRelaunchObserved": true,
+      "customCLIFlagsRetainedOnAutomaticRelaunch": false,
+      "limitation": "Older updater may omit custom CLI flags; original synthetic profile was explicitly reopened and preserved. No personal-account migration claimed."
+    },
+    "macOSPublicGitHubDelivery": {
+      "previousVersion": "0.1.13",
+      "releaseVersion": "0.1.14",
+      "nativeSquirrelGitHubDownloadAndSignatureAcceptance": true,
+      "installNotRepeated": true,
+      "stagedRendererHashVerified": true,
+      "events": [
+        {
+          "releaseNotes": "Synthetic exact shared-mute upgrade acceptance",
+          "releaseName": "Syndicate0.1.14",
+          "releaseDate": "1970-01-01T00:00:00.000Z",
+          "updateURL": "https://github.com/dakotasnapshot/syndicate-releases/releases/download/desktop-v0.1.14/Syndicate-0.1.14-macOS-universal.zip"
+        }
+      ]
+    }
+  },
+  "macOSSigning": {
+    "app": {
+      "id": "c35e22c7-9ee7-419f-9ca5-827ee170b201",
+      "status": "Accepted"
+    },
+    "dmg": {
+      "id": "a95e3f66-cc15-4a93-ae45-6b8c07468848",
+      "status": "Accepted"
+    }
+  },
+  "webAcceptance": {
+    "engines": [
+      "Chromium",
+      "WebKit"
+    ],
+    "desktopAndIPhoneUserAgent": true,
+    "mobileDialogBoundsVerified": true,
+    "physicalIPhone": false
+  },
+  "limitations": [
+    "Windows remains an unsigned preview.",
+    "Debian CI uses sudo for the same dpkg command; interactive Polkit/UAC acceptance is not claimed.",
+    "Synthetic account/profile fixtures only; no personal-account migration or real-server call/media/OS notification verification claimed.",
+    "Room schedule transitions require a running supporting client; a suspended browser cannot guarantee unattended transitions.",
+    "iOS/Watch, Android and Loader were not rebuilt.",
+    "Older Mac updater may omit custom CLI profile flags on automatic relaunch; original custom profile was explicitly reopened and preserved."
+  ],
+  "files": [
+    {
+      "name": "Syndicate-0.1.14-Linux-x86_64.deb",
+      "size": 137676700,
+      "sha256": "6d3f83168278f81871423fdb8b5a66ef53e42f8db648df2d985bfbb01eab3a22"
+    },
+    {
+      "name": "Syndicate-0.1.14-Linux-x86_64.tar.gz",
+      "size": 169885052,
+      "sha256": "63c22d9dd0304e2b242bdba5b42d139aa6f4948cbc3849c92298c50ee2a11540"
+    },
+    {
+      "name": "Syndicate-0.1.14-Windows-x64.msi",
+      "size": 148701184,
+      "sha256": "d4f501b7a16fa1ea971abf30923d215395cf648f83a214e89db429a11e3a4895"
+    },
+    {
+      "name": "Syndicate-Setup-0.1.14-Windows-x64.exe",
+      "size": 189706240,
+      "sha256": "149722a0d3f17a3189bbb063ad79821e714c4b8b14cc49c0cde8b1e3eceafb1e"
+    },
+    {
+      "name": "syn-messenger-0.1.14-full.nupkg",
+      "size": 188827143,
+      "sha256": "3c18ed19640c8801d9e1ef958b5a7e41aaeaa63a8c1cddc5e2d40da22b9a536d"
+    },
+    {
+      "name": "RELEASES",
+      "size": 85,
+      "sha256": "97e4a7a704138ffaa7c07f191d7cb99b75ea82ad757c61786e24a71d31b7a0a2"
+    },
+    {
+      "name": "Syndicate-0.1.14-macOS-universal.dmg",
+      "size": 328325413,
+      "sha256": "95c41762f5d1928074be52070b793b47fdcdf07394f4355d811f9140ebd73bb0"
+    },
+    {
+      "name": "Syndicate-0.1.14-macOS-universal.zip",
+      "size": 288692952,
+      "sha256": "b59162c771f374954d0a77660bb901c90388360a27428eac64d7e51afd8e4240"
+    }
+  ]
+}
