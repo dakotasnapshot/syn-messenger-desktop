@@ -28,3 +28,29 @@
         user-select: none; /* currently supported by Chrome, Edge, Opera and Firefox */
     }
 }
+
+@container syndicate-conversations (max-width: 180px) {
+    .header {
+        padding: 8px;
+    }
+
+    .container {
+        flex-direction: column;
+        gap: 8px;
+        padding-bottom: 4px;
+    }
+
+    .title {
+        max-width: 100%;
+    }
+
+    .title h1 {
+        font-size: 12px;
+    }
+
+    .container > :last-child {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+    }
+}

@@ -31,3 +31,12 @@
 .iconButton[aria-expanded="true"] svg {
     transform: rotate(180deg);
 }
+
+@container syndicate-conversations (max-width: 180px) {
+    .roomListPrimaryFilters {
+        padding: 4px;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow-x: auto;
+    }
+}

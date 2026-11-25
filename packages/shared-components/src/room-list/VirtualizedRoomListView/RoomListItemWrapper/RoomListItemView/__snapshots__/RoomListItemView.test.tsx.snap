@@ -16,6 +16,7 @@ exports[`<RoomListItemView /> > renders Bold story 1`] = `
       role="option"
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: stretch; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-3x); --mx-flex-wrap: nowrap;"
       tabindex="-1"
+      title="Team Updates"
       type="button"
     >
       <div
@@ -146,6 +147,7 @@ exports[`<RoomListItemView /> > renders Default story 1`] = `
       role="option"
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: stretch; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-3x); --mx-flex-wrap: nowrap;"
       tabindex="-1"
+      title="General"
       type="button"
     >
       <div
@@ -276,6 +278,7 @@ exports[`<RoomListItemView /> > renders Invitation story 1`] = `
       role="option"
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: stretch; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-3x); --mx-flex-wrap: nowrap;"
       tabindex="-1"
+      title="Secret Project"
       type="button"
     >
       <div
@@ -424,6 +427,7 @@ exports[`<RoomListItemView /> > renders NoMessagePreview story 1`] = `
       role="option"
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: stretch; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-3x); --mx-flex-wrap: nowrap;"
       tabindex="-1"
+      title="General"
       type="button"
     >
       <div
@@ -548,6 +552,7 @@ exports[`<RoomListItemView /> > renders Selected story 1`] = `
       role="option"
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: stretch; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-3x); --mx-flex-wrap: nowrap;"
       tabindex="-1"
+      title="General"
       type="button"
     >
       <div
@@ -678,6 +683,7 @@ exports[`<RoomListItemView /> > renders UnsentMessage story 1`] = `
       role="option"
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: stretch; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-3x); --mx-flex-wrap: nowrap;"
       tabindex="-1"
+      title="General"
       type="button"
     >
       <div
@@ -826,6 +832,7 @@ exports[`<RoomListItemView /> > renders WithHoverMenu story 1`] = `
       role="option"
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: stretch; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-3x); --mx-flex-wrap: nowrap;"
       tabindex="-1"
+      title="General"
       type="button"
     >
       <div
@@ -956,6 +963,7 @@ exports[`<RoomListItemView /> > renders WithMention story 1`] = `
       role="option"
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: stretch; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-3x); --mx-flex-wrap: nowrap;"
       tabindex="-1"
+      title="General"
       type="button"
     >
       <div
@@ -1109,6 +1117,7 @@ exports[`<RoomListItemView /> > renders WithNotification story 1`] = `
       role="option"
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: stretch; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-3x); --mx-flex-wrap: nowrap;"
       tabindex="-1"
+      title="General"
       type="button"
     >
       <div
@@ -1251,6 +1260,7 @@ exports[`<RoomListItemView /> > renders WithVideoCall story 1`] = `
       role="option"
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: stretch; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-3x); --mx-flex-wrap: nowrap;"
       tabindex="-1"
+      title="General"
       type="button"
     >
       <div
@@ -1399,6 +1409,7 @@ exports[`<RoomListItemView /> > renders WithVoiceCall story 1`] = `
       role="option"
       style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: stretch; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-3x); --mx-flex-wrap: nowrap;"
       tabindex="-1"
+      title="General"
       type="button"
     >
       <div

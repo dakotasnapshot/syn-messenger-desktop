@@ -6,7 +6,7 @@ on:
             version:
                 description: Release version without a leading v
                 required: true
-                default: 0.1.11
+                default: 0.1.14
     push:
         branches:
             - syn/main
@@ -38,7 +38,7 @@ jobs:
                   } elseif ("${{ github.ref_type }}" -eq "tag") {
                     $version = "${{ github.ref_name }}" -replace '^syn-v', ''
                   } else {
-                    $version = "0.1.11"
+                    $version = "0.1.14"
                   }
                   if ($version -notmatch '^\d+\.\d+\.\d+$') {
                     throw "Invalid release version: $version"

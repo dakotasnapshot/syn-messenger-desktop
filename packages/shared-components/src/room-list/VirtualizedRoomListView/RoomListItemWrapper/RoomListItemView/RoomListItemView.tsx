@@ -233,6 +233,7 @@ export const RoomListItemView = memo(function RoomListItemView({
                 align="stretch"
                 type="button"
                 aria-label={a11yLabel}
+                title={item.name}
                 onClick={vm.onOpenRoom}
                 onFocus={onItemFocus}
                 onBlur={onItemBlur}

@@ -9,6 +9,7 @@ exports[`RoomListSearchView > Storybook snapshots > renders the default state 1`
     style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: center; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-2x); --mx-flex-wrap: nowrap;"
   >
     <button
+      aria-label="Search ⌘ K"
       class="_button_1nw83_8 RoomListSearchView-module_search _has-icon_1nw83_60"
       data-kind="secondary"
       data-size="md"
@@ -76,6 +77,7 @@ exports[`RoomListSearchView > Storybook snapshots > renders with all buttons vis
     style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: center; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-2x); --mx-flex-wrap: nowrap;"
   >
     <button
+      aria-label="Search ⌘ K"
       class="_button_1nw83_8 RoomListSearchView-module_search _has-icon_1nw83_60"
       data-kind="secondary"
       data-size="md"
@@ -164,6 +166,7 @@ exports[`RoomListSearchView > Storybook snapshots > renders with dial pad button
     style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: center; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-2x); --mx-flex-wrap: nowrap;"
   >
     <button
+      aria-label="Search ⌘ K"
       class="_button_1nw83_8 RoomListSearchView-module_search _has-icon_1nw83_60"
       data-kind="secondary"
       data-size="md"
@@ -252,6 +255,7 @@ exports[`RoomListSearchView > Storybook snapshots > renders without explore butt
     style="--mx-flex-display: flex; --mx-flex-direction: row; --mx-flex-align: center; --mx-flex-justify: start; --mx-flex-gap: var(--cpd-space-2x); --mx-flex-wrap: nowrap;"
   >
     <button
+      aria-label="Search ⌘ K"
       class="_button_1nw83_8 RoomListSearchView-module_search _has-icon_1nw83_60"
       data-kind="secondary"
       data-size="md"

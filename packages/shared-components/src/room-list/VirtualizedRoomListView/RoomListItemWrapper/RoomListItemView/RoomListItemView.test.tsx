@@ -29,6 +29,26 @@ const {
 } = composeStories(stories);
 
 describe("<RoomListItemView />", () => {
+    it("keeps room activation and unread badges available in the narrow avatar rail", async () => {
+        const user = userEvent.setup();
+        const { container } = render(
+            <div style={{ container: "syndicate-conversations / inline-size", width: 88 }}>
+                <WithNotification />
+            </div>,
+        );
+        const name = screen.getByTestId("room-name");
+        await waitFor(() => expect(name.checkVisibility()).toBe(false));
+        expect(screen.getByTestId("notification-decoration").checkVisibility()).toBe(true);
+        const room = screen.getByRole("option");
+        expect(room.getAttribute("aria-label")).toContain(name.textContent);
+        expect(room.getAttribute("title")).toBe(name.textContent);
+        await user.click(room);
+        expect(WithNotification.args.onOpenRoom).toHaveBeenCalled();
+
+        (container.firstElementChild as HTMLElement).style.width = "320px";
+        await waitFor(() => expect(name.checkVisibility()).toBe(true));
+    });
+
     it("renders Default story", () => {
         const { container } = render(<Default />);
         expect(container).toMatchSnapshot();

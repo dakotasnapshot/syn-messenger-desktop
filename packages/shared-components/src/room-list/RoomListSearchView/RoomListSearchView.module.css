@@ -44,3 +44,20 @@
     text-overflow: ellipsis;
     text-align: start;
 }
+
+@container syndicate-conversations (max-width: 180px) {
+    .view {
+        padding: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 4px;
+    }
+
+    .search {
+        flex: 0 0 auto;
+    }
+
+    .search_container {
+        display: none;
+    }
+}

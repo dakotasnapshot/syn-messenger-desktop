@@ -149,3 +149,44 @@
 .lastItem {
     --padding-bottom: 0px;
 }
+
+/* Keep the same room buttons, keyboard navigation and context menus in the avatar rail. */
+@container syndicate-conversations (max-width: 180px) {
+    .container {
+        margin-inline: 8px;
+        padding-inline: 8px;
+        justify-content: center;
+        position: relative;
+    }
+
+    .content {
+        flex: 0;
+    }
+
+    .content > .ellipsis,
+    .hoverMenu {
+        display: none !important;
+    }
+
+    .notificationDecoration {
+        position: absolute;
+        inset-block-start: 0;
+        inset-inline-end: 0;
+        display: block !important;
+    }
+
+    .selected .container {
+        background: linear-gradient(135deg, #7045bd, #355eae);
+        color: white;
+    }
+
+    .selected .container::before {
+        display: none;
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .container {
+        transition: background-color 160ms ease;
+    }
+}

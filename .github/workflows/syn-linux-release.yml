@@ -6,7 +6,7 @@ on:
             version:
                 description: Release version without a leading v
                 required: true
-                default: 0.1.11
+                default: 0.1.14
     push:
         branches:
             - syn/main
@@ -21,7 +21,7 @@ jobs:
         timeout-minutes: 40
         env:
             VARIANT_PATH: syn/release/build.json
-            VERSION: ${{ inputs.version || '0.1.11' }}
+            VERSION: ${{ inputs.version || '0.1.14' }}
         steps:
             - uses: actions/checkout@v4
 

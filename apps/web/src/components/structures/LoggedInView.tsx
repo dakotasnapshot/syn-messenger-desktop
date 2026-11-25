@@ -702,8 +702,8 @@ class LoggedInView extends React.Component<IProps, IState> {
                     <LeftResizablePanelView
                         vm={resizerViewModel}
                         className="mx_LeftPanel_panel"
-                        minSize="200px"
-                        maxSize="370px"
+                        minSize="88px"
+                        maxSize="440px"
                         defaultSize="370px"
                     >
                         {leftPanel}

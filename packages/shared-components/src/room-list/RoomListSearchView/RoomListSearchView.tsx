@@ -82,6 +82,7 @@ export function RoomListSearchView({ vm }: Readonly<RoomListSearchViewProps>): J
         >
             <Button
                 id="room-list-search-button"
+                aria-label={`${_t("action|search")} ${searchShortcut}`}
                 className={styles.search}
                 kind="secondary"
                 size="md"
