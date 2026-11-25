@@ -1,0 +1,20 @@
+/* Copyright 2026 Dakota Cole. SPDX-License-Identifier: AGPL-3.0-only */
+/* Browser-only PWA shell: native packages retain their own window layout. */
+@media (max-width: 600px) {
+    .mx_Dialog_border {
+        max-width: calc(100vw - 16px);
+    }
+
+    .mx_Dialog {
+        min-width: 0;
+        max-width: 100%;
+        padding: 24px 16px;
+    }
+
+    .mx_Dialog.mx_ServerPickerDialog,
+    .mx_Dialog .mx_ServerPickerDialog {
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+    }
+}

@@ -7,11 +7,6 @@ on:
                 description: Release version without a leading v
                 required: true
                 default: 0.1.14
-    push:
-        branches:
-            - syn/main
-        tags:
-            - syn-v*
 
 permissions:
     contents: read
